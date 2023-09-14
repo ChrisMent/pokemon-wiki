@@ -1,0 +1,46 @@
+.overview-card {
+  color: #fff;
+  font-weight: 700;
+  position: relative;
+}
+
+.overview-img {
+  width: 98px;
+  height: 88px;
+  z-index: 100 !important;
+}
+
+.overview-badges {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
+
+.overview-badge {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.overview-columns {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+}
+
+.overview-background {
+  width: 140px;
+  height: 140px;
+  opacity: 0.25;
+  position: absolute;
+  right: -20px;
+  bottom: -30px;
+}
+
+.bg-grass {
+  background-color: #48d0b0 !important;
+}
+.bg-fire {
+  background-color: #fb6c6c !important;
+}
