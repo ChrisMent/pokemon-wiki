@@ -9,15 +9,14 @@ import { capitalizeFirstLetter } from './utils.js';
 export function initModal() {
     console.log("initModal function started");
     const modal = document.getElementById('pokemonModal');
-    const pokemonContainer = document.getElementById('pokemon-container');
+    const pokemonLinks = document.querySelectorAll('.pokemon-link');
+    console.log(pokemonLinks.length + " Pokémon-Links gefunden");  // Zum Debuggen
     
     // Fügt jedem Pokémon-Link einen EventListener hinzu
-    pokemonContainer.addEventListener('click', async function(e) {
-        const link = e.target.closest('.pokemon-link');
-        if (link) {
-            console.log("Pokemon link clicked");
+    pokemonLinks.forEach(link => {
+        link.addEventListener('click', async function(e) {
+            // Verhindert das Standardverhalten des Links
             e.preventDefault();
-            console.log(e.currentTarget)
             // Pfad zur modal.html-Datei
             const file = 'modal.html';
             // Extrahiert den Namen des angeklickten Pokémon aus dem href-Attribut
@@ -82,8 +81,8 @@ export function initModal() {
             } catch (error) {
                 console.error("Error loading modal content:", error);
             }
-
- } });
+        })
+  });
 }
 
 
