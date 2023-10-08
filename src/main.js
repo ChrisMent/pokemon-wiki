@@ -1,5 +1,5 @@
 // main.js
-import { getPokemonData, getEvolutionChainData } from './api.js'; 
+import { getPokemonData } from './api.js'; 
 import { renderOverview, renderAllPokemon } from './render.js'; 
 import { capitalizeFirstLetter, lightenColor, getBackgroundColor ,toggleDropdown, updateSelectedOption} from './utils.js';
 import { searchPokemons } from './search.js'

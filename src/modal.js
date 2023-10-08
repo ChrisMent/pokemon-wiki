@@ -7,27 +7,20 @@ import { capitalizeFirstLetter } from './utils.js';
 
 // Hauptfunktion zum Initialisieren des Modals
 export function initModal() {
-    console.log("initModal function started");
+    // Zugriff auf das Modal-Element
     const modal = document.getElementById('pokemonModal');
+    // Zugriff auf alle Pokémon-Links
     const pokemonLinks = document.querySelectorAll('.pokemon-link');
-    console.log(pokemonLinks.length + " Pokémon-Links gefunden");  // Zum Debuggen
     
     // Fügt jedem Pokémon-Link einen EventListener hinzu
-    document.body.addEventListener('click', function(e) {
-        if (e.target.matches('.pokemon-link, .pokemon-link *')) {   
-        
+    pokemonLinks.forEach(link => {
+        link.addEventListener('click', async function(e) {
             // Verhindert das Standardverhalten des Links
             e.preventDefault();
-            e.stopPropagation();
-
-            // Zugriff auf das tatsächliche Link-Element
-            const linkElement = e.target.closest('.pokemon-link');
-            console.log(linkElement);
-
             // Pfad zur modal.html-Datei
             const file = 'modal.html';
             // Extrahiert den Namen des angeklickten Pokémon aus dem href-Attribut
-            const pokemonName = linkElement.getAttribute('href');
+            const pokemonName = e.currentTarget.getAttribute('href');
             // Sucht nach den Daten des ausgewählten Pokémon im allPokemonData Array
             const selectedPokemon = allPokemonData.find(pokemon => pokemon.name === pokemonName);
 
@@ -37,69 +30,60 @@ export function initModal() {
                 return;
             }
 
-            // An dieser Stelle können Sie den Code zum Laden und Anzeigen des Modals hinzufügen...
-            // Zum Beispiel:
-            loadAndShowModal(file, selectedPokemon);   
-        }
+            try {
+                // Anfrage an modal.html
+                const responseModal = await fetch(file);
+                // Überprüft den Status der Antwort
+                if (!responseModal.ok) {
+                    throw new Error(`HTTP error! status: ${responseModal.status}`);
+                }
 
-        
-    });
-}
+                // Konvertiert die Antwort in Text
+                let textResponseModal = await responseModal.text();
+                // Ersetzt Platzhalter im Text durch tatsächliche Daten
+                textResponseModal = replaceValues(textResponseModal, selectedPokemon);
+                // Setzt den modalContent in den DOM
+                document.querySelector('.modal-content').innerHTML = textResponseModal;
+                
+                // Aktualisieren Sie die Fortschrittsbalken direkt nach dem Rendern des Modals
+                const progressBars = document.querySelectorAll('.progress-bar');
+                progressBars.forEach(progressBar => {
+                    const widthValue = parseFloat(progressBar.dataset.width); 
+                    progressBar.style.width = widthValue + '%';
 
-async function loadAndShowModal(file, selectedPokemon) {
-    try {
-        // Anfrage an modal.html
-        const responseModal = await fetch(file);
-        // Überprüft den Status der Antwort
-        if (!responseModal.ok) {
-            throw new Error(`HTTP error! status: ${responseModal.status}`);
-        }
+                    if (widthValue > 50) {
+                        progressBar.style.backgroundColor = '#6DCD95';
+                    } else {
+                        progressBar.style.backgroundColor = '#FDA2A2';
+                    }
+                });
 
-        // Konvertiert die Antwort in Text
-        let textResponseModal = await responseModal.text();
-        // Ersetzt Platzhalter im Text durch tatsächliche Daten
-        textResponseModal = replaceValues(textResponseModal, selectedPokemon);
-        // Setzt den modalContent in den DOM
-        document.querySelector('.modal-content').innerHTML = textResponseModal;
-        
-        // Aktualisieren Sie die Fortschrittsbalken direkt nach dem Rendern des Modals
-        const progressBars = document.querySelectorAll('.progress-bar');
-        progressBars.forEach(progressBar => {
-            const widthValue = parseFloat(progressBar.dataset.width); 
-            progressBar.style.width = widthValue + '%';
+                // Setzen Sie die Breite des Fortschrittsbalkens bei Total
+                const progressBarTotal = document.querySelector('.total');
+                progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
+                progressBarTotal.style.backgroundColor = '#faae0b'
+                
+                // Zeigt das Modal an
+                modal.style.display = "block";
 
-            if (widthValue > 50) {
-                progressBar.style.backgroundColor = '#6DCD95';
-            } else {
-                progressBar.style.backgroundColor = '#FDA2A2';
+                // Setzt die Hintergrundfarbe des Elements mit der ID 'card-first-sec'
+                const cardFirstSec = document.getElementById('card-first-sec');
+                cardFirstSec.style.backgroundColor = getBackgroundColor(selectedPokemon.types[0]);
+
+                // Fügt einen EventListener zum Schließen des Modals hinzu
+                const closeModal = document.getElementById('closeModal');
+                closeModal.addEventListener('click', function() {
+                    modal.style.display = "none";
+
+                });
+
+            } catch (error) {
+                console.error("Error loading modal content:", error);
             }
         });
+    });
 
-        // Setzen Sie die Breite des Fortschrittsbalkens bei Total
-        const progressBarTotal = document.querySelector('.total');
-        progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
-        progressBarTotal.style.backgroundColor = '#faae0b'
-        
-        // Zeigt das Modal an
-        const modal = document.getElementById('pokemonModal');
-        modal.style.display = "block";
-
-        // Setzt die Hintergrundfarbe des Elements mit der ID 'card-first-sec'
-        const cardFirstSec = document.getElementById('card-first-sec');
-        cardFirstSec.style.backgroundColor = getBackgroundColor(selectedPokemon.types[0]);
-
-        // Fügt einen EventListener zum Schließen des Modals hinzu
-        const closeModal = document.getElementById('closeModal');
-        closeModal.addEventListener('click', function() {
-            modal.style.display = "none";
-        });
-    
-    } catch (error) {
-        console.error("Error loading modal content:", error);
-    }
 }
-
-
 
 // Funktion zum Ersetzen von Platzhaltern im modalContent
 function replaceValues(modalContent, pokemonData) {
@@ -156,3 +140,5 @@ function replaceValues(modalContent, pokemonData) {
        
     return modalContent;
 }
+
+

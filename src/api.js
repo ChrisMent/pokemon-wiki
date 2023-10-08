@@ -1,5 +1,4 @@
 import { capitalizeFirstLetter , formatNumber} from './utils.js';
-import { generateEvolutionHTML} from './render.js';
 
 // *** API - Abruf für die Übersichtsseite *** //
 
@@ -7,7 +6,6 @@ import { generateEvolutionHTML} from './render.js';
 export let allPokemonData = []; 
 console.log(allPokemonData)
 export async function getPokemonData() {
-    console.log("loadAllPokemon called");
     // API URL für den Start
     let url = 'https://pokeapi.co/api/v2/pokemon/';
       
@@ -63,8 +61,6 @@ export async function getPokemonData() {
             baseStats.total = baseStats.hp + baseStats.attack + baseStats.defense + baseStats.specialAttack + baseStats.specialDefense + baseStats.speed;
             
             let totalStatProgress = baseStats.total / 6
-
-
   
             // Erstellung eine Objektes mit mehreren Variabeln
             const pokemonData = {
@@ -122,68 +118,6 @@ export async function getPokemonData() {
     }
 }
 
-
-async function getPokemonThumbnail(pokemonName) {
-    try {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}/`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data.sprites.front_default;
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error);
-    }
-}
-
-
-async function extractEvolutionChain(chain) {
-    const result = [];
-    let currentChain = chain;
-
-    while (currentChain && currentChain.species) {
-        const speciesName = currentChain.species.name;
-        const thumbnail = await getPokemonThumbnail(speciesName);
-        const evolutionDetails = currentChain.evolution_details[0] || {};
-        const minLevel = evolutionDetails.min_level || null;
-
-        result.push({
-            name: speciesName,
-            thumbnail: thumbnail,
-            min_level: minLevel
-        });
-
-        currentChain = currentChain.evolves_to[0];
-    }
-    
-    console.log(result);  // Hier wird der Inhalt des Arrays in der Konsole angezeigt.
-    return result;
-}
-
-
-export async function getEvolutionChainData(chainId) {
-    try {
-        const response = await fetch(`https://pokeapi.co/api/v2/evolution-chain/${chainId}/`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return await extractEvolutionChain(data.chain);
-
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error);
-    }
-}
-
-export async function fetchEvolutionData() {
-    console.log("fetchEvolutionData called")
-    const evolutionData = await getEvolutionChainData(1);
-    console.log(evolutionData);
-
-    // Rendern der Evolutionsdaten und Anhängen an den Body
-    const htmlOutput = generateEvolutionHTML(evolutionData);
-    document.body.innerHTML += htmlOutput;
-}
 
 
 
