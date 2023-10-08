@@ -7,15 +7,15 @@ import { capitalizeFirstLetter } from './utils.js';
 
 // Hauptfunktion zum Initialisieren des Modals
 export function initModal() {
-    // Zugriff auf das Modal-Element
+    console.log("initModal function started");
     const modal = document.getElementById('pokemonModal');
-    // Zugriff auf alle Pokémon-Links
-    const pokemonLinks = document.querySelectorAll('.pokemon-link');
+    const pokemonContainer = document.getElementById('pokemon-container');
     
     // Fügt jedem Pokémon-Link einen EventListener hinzu
-    pokemonLinks.forEach(link => {
-        link.addEventListener('click', async function(e) {
-            // Verhindert das Standardverhalten des Links
+    pokemonContainer.addEventListener('click', async function(e) {
+        const link = e.target.closest('.pokemon-link');
+        if (link) {
+            console.log("Pokemon link clicked");
             e.preventDefault();
             console.log(e.currentTarget)
             // Pfad zur modal.html-Datei
@@ -76,15 +76,17 @@ export function initModal() {
                 closeModal.addEventListener('click', function() {
                     modal.style.display = "none";
 
-                });
 
+                });
+        
             } catch (error) {
                 console.error("Error loading modal content:", error);
             }
-        });
-    });
 
+ } });
 }
+
+
 
 // Funktion zum Ersetzen von Platzhaltern im modalContent
 function replaceValues(modalContent, pokemonData) {

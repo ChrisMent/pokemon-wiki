@@ -6,11 +6,14 @@ import { searchPokemons } from './search.js'
 import { initModal } from './modal.js';
 
 async function main() {
+    console.log("main function started");  // Hinzugefügt
     try {
-        const allPokemonData = await loadAllPokemon();  // Daten für alle Pokémon laden
-        renderAllPokemon(allPokemonData);  // Alle Pokémon im HTML darstellen
-        // Modal initialisieren
+        const allPokemonData = await loadAllPokemon();
+        console.log("All Pokemon data loaded");  // Hinzugefügt
+        renderAllPokemon(allPokemonData);
+        console.log("All Pokemon rendered");  // Hinzugefügt
         initModal();
+        console.log("initModal called");  // Hinzugefügt
     } catch (error) {
         console.error("Fehler beim Laden oder Rendern der Pokemon:", error);
     }
