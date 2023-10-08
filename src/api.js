@@ -118,6 +118,65 @@ export async function getPokemonData() {
     }
 }
 
+// Funktion, um die Pokemon-Thumbnail-URL zu erhalten
+async function getPokemonThumbnail(pokemonName) {
+    try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}/`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.sprites.front_default;
+    } catch (error) {
+        console.error("There was a problem with the fetch operation:", error);
+    }
+}
+
+// Rekursive Funktion, um die Evolutionskette zu extrahieren
+function extractEvolutionChain(chain) {
+    const result = {
+        name: chain.species.name,
+        thumbnail: null, // Dies wird später aktualisiert
+        min_level: chain.evolution_details[0]?.min_level || null
+    };
+
+    // Wenn es eine weitere Evolution gibt, fügen Sie sie hinzu
+    if (chain.evolves_to.length > 0) {
+        result.next_evolution = extractEvolutionChain(chain.evolves_to[0]);
+    }
+
+    return result;
+}
+
+// Hauptfunktion, um die Daten zu erhalten und die Evolutionskette zu extrahieren
+async function getEvolutionData() {
+    try {
+        const response = await fetch('https://pokeapi.co/api/v2/evolution-chain/1/');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const evolutionChain = extractEvolutionChain(data.chain);
+
+        // Aktualisieren Sie die Thumbnail-URLs
+        evolutionChain.thumbnail = await getPokemonThumbnail(evolutionChain.name);
+        if (evolutionChain.next_evolution) {
+            evolutionChain.next_evolution.thumbnail = await getPokemonThumbnail(evolutionChain.next_evolution.name);
+            if (evolutionChain.next_evolution.next_evolution) {
+                evolutionChain.next_evolution.next_evolution.thumbnail = await getPokemonThumbnail(evolutionChain.next_evolution.next_evolution.name);
+            }
+        }
+
+        console.log(evolutionChain);
+        return evolutionChain;
+
+    } catch (error) {
+        console.error("There was a problem with the fetch operation:", error);
+    }
+}
+
+// Rufen Sie die Hauptfunktion auf
+getEvolutionData();
 
 
 
