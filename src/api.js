@@ -6,7 +6,8 @@ import { generateEvolutionHTML} from './render.js';
 // Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
 export let allPokemonData = []; 
 console.log(allPokemonData)
-export async function loadAllPokemon() {
+export async function getPokemonData() {
+    console.log("loadAllPokemon called");
     // API URL für den Start
     let url = 'https://pokeapi.co/api/v2/pokemon/';
       
@@ -154,9 +155,11 @@ async function extractEvolutionChain(chain) {
 
         currentChain = currentChain.evolves_to[0];
     }
-
+    
+    console.log(result);  // Hier wird der Inhalt des Arrays in der Konsole angezeigt.
     return result;
 }
+
 
 export async function getEvolutionChainData(chainId) {
     try {
@@ -173,6 +176,7 @@ export async function getEvolutionChainData(chainId) {
 }
 
 export async function fetchEvolutionData() {
+    console.log("fetchEvolutionData called")
     const evolutionData = await getEvolutionChainData(1);
     console.log(evolutionData);
 
@@ -181,10 +185,6 @@ export async function fetchEvolutionData() {
     document.body.innerHTML += htmlOutput;
 }
 
-// Zuerst die Pokémon-Übersicht laden
-loadAllPokemon().then(() => {
-    // Nachdem die Übersicht geladen wurde, rufen Sie getEvolutionChainData auf
-    fetchEvolutionData();
-});
+
 
 
