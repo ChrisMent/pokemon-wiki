@@ -106,5 +106,4 @@ export function renderOverview(pokemonData) {
         </div>
     </div>
     `;
-    initModal();
 }

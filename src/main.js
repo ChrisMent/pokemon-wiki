@@ -9,7 +9,7 @@ async function main() {
     try {
         const allPokemonData = await loadAllPokemon();  
         renderAllPokemon(allPokemonData);  
-        initModal();  // Rufen Sie initModal hier auf
+        initModal();
     } catch (error) {
         console.error("Fehler beim Laden oder Rendern der Pokemon:", error);
     }
