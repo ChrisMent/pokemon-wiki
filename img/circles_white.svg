@@ -1,0 +1,22 @@
+<svg class="design-symbols" viewBox="0 0 180 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Erste Zeile -->
+  <circle cx="10" cy="10" r="6" fill="#ffffff"/>
+  <circle cx="50" cy="10" r="6" fill="#ffffff"/>
+  <circle cx="90" cy="10" r="6" fill="#ffffff"/>
+  <circle cx="130" cy="10" r="6" fill="#ffffff"/>
+  <circle cx="170" cy="10" r="6" fill="#ffffff"/>
+  
+  <!-- Zweite Zeile -->
+  <circle cx="10" cy="50" r="6" fill="#ffffff"/>
+  <circle cx="50" cy="50" r="6" fill="#ffffff"/>
+  <circle cx="90" cy="50" r="6" fill="#ffffff"/>
+  <circle cx="130" cy="50" r="6" fill="#ffffff"/>
+  <circle cx="170" cy="50" r="6" fill="#ffffff"/>
+  
+  <!-- Dritte Zeile -->
+  <circle cx="10" cy="90" r="6" fill="#ffffff"/>
+  <circle cx="50" cy="90" r="6" fill="#ffffff"/>
+  <circle cx="90" cy="90" r="6" fill="#ffffff"/>
+  <circle cx="130" cy="90" r="6" fill="#ffffff"/>
+  <circle cx="170" cy="90" r="6" fill="#ffffff"/>
+</svg>

@@ -1,48 +1,190 @@
-import { capitalizeFirstLetter} from './utils.js';
+import { capitalizeFirstLetter , formatNumber} from './utils.js';
+import { generateEvolutionHTML} from './render.js';
+
+// *** API - Abruf für die Übersichtsseite *** //
+
+// Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
+export let allPokemonData = []; 
+console.log(allPokemonData)
 export async function loadAllPokemon() {
+    // API URL für den Start
     let url = 'https://pokeapi.co/api/v2/pokemon/';
-    
-    // Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
-    let allPokemonData = []; 
-
-
+      
+    // Alle Fehler, die während der Fetch-Aufrufe auftreten könnten, werden vom bestehenden catch-Block am Ende des Codes abgefangen. Daher den try-Block nur einmal.
       try {
-        let response = await fetch(url);
+        const responseAllPokemons = await fetch(url);
   
-        if (!response.ok) { // Wenn der Response fehlschlägt, dann gebe die Fehlermeldung aus
+        if (!responseAllPokemons.ok) { // Überprüft, ob die Anfrage erfolgreich war
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-  
-        let jsonResponse = await response.json(); // Umwandeln des Resonses in das JSON Format
-        let results = jsonResponse.results;
-  
-        for (let result of results) {
-            const pokemonUrl = result.url;  // URL für die Detailinformationen des Pokémons
-            const pokemonResponse = await fetch(pokemonUrl);  // Zweite Fetch-Anfrage für Details
+         // Wandelt die Antwort in ein JSON-Objekt um und speichert es
+        let jsonResponseAllPokemons = await responseAllPokemons.json(); 
+        
+        // Zugriff auf das auf den in Json umformatierten Text der API
+        let results = jsonResponseAllPokemons.results;
+ 
+
+        // Durch iterieren durch alle Pokemons und Rückgabe von URL für die weitere Fetch-Anfrage
+        for (let resultAllPokemons of results) {
+            
+            // API URL zu den Detailinformationen der Pokemons
+            const pokemonUrl = resultAllPokemons.url;
+
+            // Zweite Fetch-Anfrage und speichert die Antwort in pokemonResponse.
+            const pokemonResponse = await fetch(pokemonUrl);  
   
             if (!pokemonResponse.ok) {
                 throw new Error(`HTTP error! status: ${pokemonResponse.status}`);
             }
   
-            const pokemonJson = await pokemonResponse.json();  // Antwort als JSON
-            const name = capitalizeFirstLetter(pokemonJson.name);
+            // Wandelt die Antwort in ein JSON-Objekt um und speichert es
+            // Daten aus: https://pokeapi.co/api/v2/pokemon/{id}
+            const pokemonJson = await pokemonResponse.json();
+            const id = pokemonJson.id;
+            const name = pokemonJson.name;
             const types = pokemonJson.types.map(typeObj => capitalizeFirstLetter(typeObj.type.name));
             const image = pokemonJson.sprites.other.home.front_default;
+            const height = pokemonJson.height / 10
+            const heightInInch = height * 3.937
+            const weightInLbs = pokemonJson.weight * 0.2204623
+            const weightInKg = weightInLbs * 0.45359237
+            const abilities = pokemonJson.abilities.map(typeObj => capitalizeFirstLetter(typeObj.ability.name))
+            const baseStats =  {
+                hp: pokemonJson.stats[0].base_stat,
+                attack: pokemonJson.stats[1].base_stat,
+                defense: pokemonJson.stats[2].base_stat,
+                specialAttack: pokemonJson.stats[3].base_stat,
+                specialDefense: pokemonJson.stats[4].base_stat,
+                speed: pokemonJson.stats[5].base_stat,
+                // ... füge weitere Schlüssel-Wert-Paare hier hinzu
+            };
+
+            baseStats.total = baseStats.hp + baseStats.attack + baseStats.defense + baseStats.specialAttack + baseStats.specialDefense + baseStats.speed;
+            
+            let totalStatProgress = baseStats.total / 6
+
+
   
-            // Erstellung eine Objektes mit 3 Variabeln
+            // Erstellung eine Objektes mit mehreren Variabeln
             const pokemonData = {
+                id: formatNumber(id),
                 name: name,
                 types: types,
-                image: image
+                image: image,
+                height: height.toFixed(2),
+                heightInInch: heightInInch.toFixed(2),
+                weightInLbs: weightInLbs.toFixed(2),
+                weightInKg: weightInKg.toFixed(2),
+                abilities: abilities,
+                baseStats: baseStats, // Objekt kombinieren, mit dem Spread-Operator (...baseStats) oder als vollständiges Objekt mit baseStats: baseStats
+                totalStatProgress: totalStatProgress
             };
+
+
+            // Zusätzlicher Fetch-Aufruf für die 'species'-URL des Pokémon
+            // Daten aus: https://pokeapi.co/api/v2/pokemon-species/{id}/
+
+            const speciesResponse = await fetch(pokemonJson.species.url);
+            if (!speciesResponse.ok) {
+                throw new Error(`HTTP error! status: ${speciesResponse.status}`);
+            }
+            const speciesJson = await speciesResponse.json();
+
+            // Extrahieren des 'genus' aus dem 'species'-JSON
+            // Hier wird davon ausgegangen, dass der 'genus' immer in Englisch (en) vorliegt.
+            const genusWithPokemon = speciesJson.genera.find(g => g.language.name === 'en').genus;
+            const genusWithoutPokemon = genusWithPokemon.replace(" Pokémon", "");
+            const genderRateFemale = Math.floor(speciesJson.gender_rate / 8 * 100)
+            const genderRateMale = 100 - genderRateFemale
+            const eggGroups = speciesJson.egg_groups.map(typeObj => capitalizeFirstLetter(typeObj.name))
+            const captureRate = speciesJson.capture_rate
+
+            // Hinzufügen des 'genus' zum 'pokemonData'-Objekt
+            pokemonData.genus = genusWithoutPokemon;
+            pokemonData.genderRateFemale = genderRateFemale
+            pokemonData.genderRateMale = genderRateMale
+            pokemonData.eggGroups = eggGroups
+            pokemonData.captureRate = captureRate
+
             
-            // Speichern der Daten in einem Array
+            // Speichern der Daten in einem Array.
+
+            // Mit allPokemonData.push(pokemonData) werden die Daten zu einem Array hinzugefügt, aber dieses Array ist nur innerhalb der Funktion sichtbar. Wenn die gesammelten Daten in einem anderen Teil Ihres Programms verwenden werden sollen, müssen diese mit return zurückgeben.
             allPokemonData.push(pokemonData);
         }
   
+        // Der return-Befehl gibt das Array allPokemonData zurück, das alle gesammelten Pokémon-Daten enthält. Damit diese die Funktion an anderer Stelle im Code genutzt werden kann z.B. die Daten im DOM darzustellen.
         return allPokemonData;
   
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
     }
-  }
+}
+
+
+async function getPokemonThumbnail(pokemonName) {
+    try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}/`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.sprites.front_default;
+    } catch (error) {
+        console.error("There was a problem with the fetch operation:", error);
+    }
+}
+
+
+async function extractEvolutionChain(chain) {
+    const result = [];
+    let currentChain = chain;
+
+    while (currentChain && currentChain.species) {
+        const speciesName = currentChain.species.name;
+        const thumbnail = await getPokemonThumbnail(speciesName);
+        const evolutionDetails = currentChain.evolution_details[0] || {};
+        const minLevel = evolutionDetails.min_level || null;
+
+        result.push({
+            name: speciesName,
+            thumbnail: thumbnail,
+            min_level: minLevel
+        });
+
+        currentChain = currentChain.evolves_to[0];
+    }
+
+    return result;
+}
+
+export async function getEvolutionChainData(chainId) {
+    try {
+        const response = await fetch(`https://pokeapi.co/api/v2/evolution-chain/${chainId}/`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return await extractEvolutionChain(data.chain);
+
+    } catch (error) {
+        console.error("There was a problem with the fetch operation:", error);
+    }
+}
+
+export async function fetchEvolutionData() {
+    const evolutionData = await getEvolutionChainData(1);
+    console.log(evolutionData);
+
+    // Rendern der Evolutionsdaten und Anhängen an den Body
+    const htmlOutput = generateEvolutionHTML(evolutionData);
+    document.body.innerHTML += htmlOutput;
+}
+
+// Zuerst die Pokémon-Übersicht laden
+loadAllPokemon().then(() => {
+    // Nachdem die Übersicht geladen wurde, rufen Sie getEvolutionChainData auf
+    fetchEvolutionData();
+});
+
+
