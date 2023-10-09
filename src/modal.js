@@ -2,7 +2,7 @@
 
 // Importieren Sie benötigte Module und Funktionen
 import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
-import { generateEvolutionHTML } from './api.js';
+import { generateEvolutionHTML } from './render.js';
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter } from './utils.js';
 
@@ -89,6 +89,12 @@ export function initModal() {
                 const evolutionData = await getEvolutionDataForPokemon(pokemonName);
                 console.log(evolutionData);
                 // Hier können Sie weitere Aktionen ausführen, z.B. die Daten im Modal anzeigen
+
+                // Generieren des HTML-Codes für die Evolutionsdaten
+                const evolutionHTML = generateEvolutionHTML(evolutionData);
+
+                // Einfügen des generierten HTML-Codes in das Element mit der ID 'evolutionContent'
+                document.getElementById('evolutionContent').innerHTML = evolutionHTML;
 
             } catch (error) {
                 console.error("Error loading modal content:", error);

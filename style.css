@@ -244,8 +244,8 @@ body {
 
 .poke-thumbnail {
   position: absolute;
-  width: 65px;
-  top: 40%;
+  width: 120px;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 3;
