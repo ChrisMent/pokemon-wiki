@@ -148,7 +148,17 @@ function extractEvolutionChain(chain) {
     return result;
 }
 
-// Hauptfunktion, um die Daten zu erhalten und die Evolutionskette zu extrahieren
+// Hilfsfunktion, um die rekursive Evolutionskette in ein flaches Array zu konvertieren
+function flattenEvolutionChain(chain) {
+    const result = [];
+    let current = chain;
+    while (current) {
+        result.push(current);
+        current = current.next_evolution;
+    }
+    return result;
+}
+
 export async function getEvolutionDataForPokemon(pokemonName) {
     try {
         // Zuerst die Pokémon-Spezies-URL abrufen, um die Evolutionskette-URL zu erhalten
@@ -176,15 +186,15 @@ export async function getEvolutionDataForPokemon(pokemonName) {
             }
         }
 
-        return evolutionChain;
+        // Konvertiert die rekursive Evolutionskette in ein flaches Array
+        const flatEvolutionArray = flattenEvolutionChain(evolutionChain);
+
+        return flatEvolutionArray;
 
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
     }
 }
-
-
-
 
 
 

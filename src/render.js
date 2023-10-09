@@ -45,3 +45,55 @@ export function renderOverview(pokemonData) {
     </div>
     `;
 }
+
+const evolutionData = await getEvolutionDataForPokemon(pokemonName);
+const evolutionHTML = generateEvolutionHTML(evolutionData);
+
+export function generateEvolutionHTML(evolutionChain) {
+
+    for (let i = 0; i < evolutionChain.length - 1; i++) {
+        const currentPokemon = evolutionChain[i];
+        const nextPokemon = evolutionChain[i + 1];
+
+        const segment = `
+<div class="container text-center">
+    <div class="row gx-5 p-0">
+        <div class="col">
+            <div class="evolution-pokemon">
+                <div class="evolution-row">
+                    <div class="evolution-col-img">
+                        <div class="evolution-img-container">
+                            <img class="poke-thumbnail" src="${currentPokemon.thumbnail}" alt="${currentPokemon.name} Thumbnail">
+                        </div>
+                        <p><strong>${capitalizeFirstLetter(currentPokemon.name)}</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col d-flex align-items-center justify-content-center flex-column">
+            <img src="/pokemon-wiki/img/arrow-right.svg" alt="evolution-arrow-right">
+            <div><strong>Lvl ${nextPokemon.min_level}</strong></div>
+        </div>
+        <div class="col">
+            <div class="evolution-pokemon">
+                <div class="evolution-row">
+                    <div class="evolution-col-img">
+                        <div class="evolution-img-container">
+                            <img class="poke-thumbnail" src="${nextPokemon.thumbnail}" alt="${nextPokemon.name} Thumbnail">
+                        </div>
+                        <p><strong>${capitalizeFirstLetter(nextPokemon.name)}</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+</div>`;
+
+        htmlContent += segment;
+    }
+
+    return htmlContent;
+}
+
+document.getElementById('evolutionContent').innerHTML = evolutionHTML;

@@ -2,8 +2,10 @@
 
 // Importieren Sie benötigte Module und Funktionen
 import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
+import { generateEvolutionHTML } from './api.js';
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter } from './utils.js';
+
 
 // Hauptfunktion zum Initialisieren des Modals
 export function initModal() {
