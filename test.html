@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Pokemon - Details</title>
+</head>
+
+<body>
+
+    <div class="container-modal col d-flex justify-content-center align-items-center mt-4">
+        <div class="pokemon-wrapper card rounded-5">
+            <div id="card-first-sec" class="card-body rounded-top-5 pt-4" data-bg-color="{{pokemonBackgroundColor}}">
+                <div class="first-layer d-flex justify-content-between margins">
+                    <button id="closeModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-arrow-left-circle arrow-icon" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z" />
+                        </svg>
+                    </button>
+                    <div class="fs-5 fw-medium">#{{pokemonID}}</div>
+                </div>
+                <div>
+                    <h3 class="card-title margins mt-3">{{pokemonName}}</h3>
+                </div>
+                <div class="margins">
+                    <div id="type-1" class="badge-background badge rounded-pill">
+                        <span class="overview-badge">{{pokemonType1}}
+                        </span>
+                    </div>
+                    <div id="type-2" class="badge-background badge rounded-pill">
+                        <span class="overview-badge">{{pokemonType2}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="design-symbols">
+                    <img class="design-symbol-1 lighter-symbol" src="/pokemon-wiki/img/circles_white.svg" alt="circles">
+                    <div class="design-symbol-2">
+                        <svg class="lighter-symbol-svg" fill="none" height="24" viewBox="0 0 24 24" width="24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M21.9012 13H16.8506C16.3873 15.2822 14.3696 17 11.9506 17C9.53167 17 7.51391 15.2822 7.05064 13H2C2.50172 18.0533 6.76528 22 11.9506 22C17.136 22 21.3995 18.0533 21.9012 13Z"
+                                fill="#61E1CA" />
+                            <path
+                                d="M21.9012 11C21.3995 5.94668 17.136 2 11.9506 2C6.76528 2 2.50172 5.94668 2 11H7.05064C7.51391 8.71776 9.53167 7 11.9506 7C14.3696 7 16.3873 8.71776 16.8506 11H21.9012Z"
+                                fill="#61E1CA" />
+                            <path clip-rule="evenodd"
+                                d="M11.9506 15C13.6075 15 14.9506 13.6569 14.9506 12C14.9506 10.3431 13.6075 9 11.9506 9C10.2938 9 8.95062 10.3431 8.95062 12C8.95062 13.6569 10.2938 15 11.9506 15ZM13.4506 12C13.4506 12.8284 12.7791 13.5 11.9506 13.5C11.1222 13.5 10.4506 12.8284 10.4506 12C10.4506 11.1716 11.1222 10.5 11.9506 10.5C12.7791 10.5 13.4506 11.1716 13.4506 12Z"
+                                fill="#61E1CA" fill-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <img class="design-symbol-3 lighter-symbol" src="/pokemon-wiki/img/square_white.svg" alt="square">
+
+                </div>
+
+                <div class="pokemon-image-container">
+                    <img src={{pokemonImage}} alt="main-image-pokemon">
+                </div>
+
+
+            </div>
+
+            <!-- data-bs-toggle="tab": Ein Data-Attribut, das Bootstrap anweist, dass dieser Link als Tab fungiert. Hierüber wird JS gesteuert. -->
+            <!-- href="#about": Dies verweist auf den Inhalt des Tabs. Der Wert muss der id des zugehörigen Tab-Inhalts entsprechen. -->
+            <!--  -->
+            <div id="card-second-sec" class="card-body rounded-bottom-5">
+                <div class="main-nav-container">
+                    <ul class="menu-bar nav nav-underline d-flex justify-content-between margins" id="myTabs"
+                        role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="about-tab" data-bs-toggle="tab" href="#about" role="tab"
+                                aria-controls="about" aria-selected="true">About</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="stats-tab" data-bs-toggle="tab" href="#stats" role="tab"
+                                aria-controls="stats" aria-selected="false">Base Stats</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="evolution-tab" data-bs-toggle="tab" href="#evolution" role="tab"
+                                aria-controls="evolution" aria-selected="false">Evolution</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="moves-tab" data-bs-toggle="tab" href="#moves" role="tab"
+                                aria-controls="moves" aria-selected="false">Moves</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- tab-content: Eine Bootstrap-Klasse, die einen Container für den Inhalt der Tabs definiert. -->
+                <!-- tab-pane: Eine Bootstrap-Klasse, die den Inhalt eines Tabs definiert. -->
+                <!-- id="about": Diese ID entspricht dem href des zugehörigen Tab-Links. -->
+                <div class="tab-content margins" id="myTabContent">
+
+
+
+
+                    <div class="tab-pane fade" id="moves" role="tabpanel" aria-labelledby="moves-tab">
+                        <!-- Inhalt für den Tab "Moves" -->
+                        <div class="nav-container">
+                            <ul class="nav nav-pills second-menu-bar" style="font-size: 14px;">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle rounded-pill active dropdown-label"
+                                        data-bs-toggle="dropdown" id="dropdownMenuButton">
+                                        <span id="selectedOption">Select</span>
+                                    </a>
+                                    <ul class="dropdown-menu" id="gameOptions">
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="SM" checked>
+                                                Sun/Moon (SM)
+                                            </label>
+                                        </li>
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="USUM">
+                                                Ultra Sun/ Ultra Moon (USUM)
+                                            </label>
+                                        </li>
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="LGPE">
+                                                Let´s Go, Pikachu/ Evoli (LGPE)
+                                            </label>
+                                        </li>
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="SS">
+                                                Sword/ Shield (SS)
+                                            </label>
+                                        </li>
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="BDSP">
+                                                Radiant Diamond/ Luminous pearl (BDSP)
+                                            </label>
+                                        </li>
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="LA">
+                                                Legendary Arceus (LA)
+                                            </label>
+                                        </li>
+                                        <li class="dropdown-item">
+                                            <label>
+                                                <input type="radio" name="gameOption" value="SV">
+                                                Karmesin/ Purpur (SV)
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link rounded-pill active" aria-current="page" href="#">Level Up</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link rounded-pill" href="#">Tutor</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link rounded-pill" href="#">Egg</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link rounded-pill" href="#">Machine</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle" style="font-size: 14px;">
+                                <thead>
+                                    <tr>
+                                        <th class="align-middle text-center" scope="col">Level</th>
+                                        <th class="align-middle text-center" scope="col">Move Name</th>
+                                        <th class="align-middle text-center" scope="col">Power</th>
+                                        <th class="align-middle text-center" scope="col">Type</th>
+                                        <th class="align-middle text-center" scope="col">Damage Class</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th class="align-middle text-center" scope="row">1</th>
+                                        <td class="align-middle text-center">Text</td>
+                                        <td class="align-middle text-center">40</td>
+                                        <td class="align-middle text-center">Badge</td>
+                                        <td class="align-middle text-center">Icon</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="align-middle text-center" scope="row">2</th>
+                                        <td class="align-middle text-center">Text</td>
+                                        <td class="align-middle text-center">40</td>
+                                        <td class="align-middle text-center">Badge</td>
+                                        <td class="align-middle text-center">Icon</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="align-middle text-center" scope="row">3</th>
+                                        <td class="align-middle text-center">Text</td>
+                                        <td class="align-middle text-center">40</td>
+                                        <td class="align-middle text-center">Badge</td>
+                                        <td class="align-middle text-center">Icon</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    </div>
+    </div>
+
+    <script>
+        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+            return new bootstrap.Dropdown(dropdownToggleEl)
+        })
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdownItems = document.querySelectorAll('#gameOptions .dropdown-item input[type="radio"]');
+
+            dropdownItems.forEach(item => {
+                item.addEventListener('change', function () {
+                    if (this.checked) {
+                        const selectedOption = document.getElementById('selectedOption');
+                        const labelText = this.parentElement.textContent.trim();
+                        selectedOption.textContent = labelText;
+                    }
+                });
+            });
+        });
+
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
