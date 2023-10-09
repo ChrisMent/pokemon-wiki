@@ -1,7 +1,7 @@
 // modal.js  
 
 // Importieren Sie benötigte Module und Funktionen
-import { allPokemonData } from './api.js';
+import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter } from './utils.js';
 
@@ -9,6 +9,7 @@ import { capitalizeFirstLetter } from './utils.js';
 export function initModal() {
     // Zugriff auf das Modal-Element
     const modal = document.getElementById('pokemonModal');
+    
     // Zugriff auf alle Pokémon-Links
     const pokemonLinks = document.querySelectorAll('.pokemon-link');
     
@@ -17,10 +18,10 @@ export function initModal() {
         link.addEventListener('click', async function(e) {
             // Verhindert das Standardverhalten des Links
             e.preventDefault();
-            // Pfad zur modal.html-Datei
-            const file = 'modal.html';
+            
             // Extrahiert den Namen des angeklickten Pokémon aus dem href-Attribut
             const pokemonName = e.currentTarget.getAttribute('href');
+            
             // Sucht nach den Daten des ausgewählten Pokémon im allPokemonData Array
             const selectedPokemon = allPokemonData.find(pokemon => pokemon.name === pokemonName);
 
@@ -31,8 +32,12 @@ export function initModal() {
             }
 
             try {
+                // Pfad zur modal.html-Datei
+                const file = 'modal.html';
+                
                 // Anfrage an modal.html
                 const responseModal = await fetch(file);
+                
                 // Überprüft den Status der Antwort
                 if (!responseModal.ok) {
                     throw new Error(`HTTP error! status: ${responseModal.status}`);
@@ -40,12 +45,14 @@ export function initModal() {
 
                 // Konvertiert die Antwort in Text
                 let textResponseModal = await responseModal.text();
+                
                 // Ersetzt Platzhalter im Text durch tatsächliche Daten
                 textResponseModal = replaceValues(textResponseModal, selectedPokemon);
+                
                 // Setzt den modalContent in den DOM
                 document.querySelector('.modal-content').innerHTML = textResponseModal;
                 
-                // Aktualisieren Sie die Fortschrittsbalken direkt nach dem Rendern des Modals
+                // Aktualisiert die Fortschrittsbalken direkt nach dem Rendern des Modals
                 const progressBars = document.querySelectorAll('.progress-bar');
                 progressBars.forEach(progressBar => {
                     const widthValue = parseFloat(progressBar.dataset.width); 
@@ -58,10 +65,10 @@ export function initModal() {
                     }
                 });
 
-                // Setzen Sie die Breite des Fortschrittsbalkens bei Total
+                // Setzt die Breite des Fortschrittsbalkens bei Total
                 const progressBarTotal = document.querySelector('.total');
                 progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
-                progressBarTotal.style.backgroundColor = '#faae0b'
+                progressBarTotal.style.backgroundColor = '#faae0b';
                 
                 // Zeigt das Modal an
                 modal.style.display = "block";
@@ -74,16 +81,20 @@ export function initModal() {
                 const closeModal = document.getElementById('closeModal');
                 closeModal.addEventListener('click', function() {
                     modal.style.display = "none";
-
                 });
+
+                // Abrufen der Evolutionsdaten
+                const evolutionData = await getEvolutionDataForPokemon(pokemonName);
+                console.log(evolutionData);
+                // Hier können Sie weitere Aktionen ausführen, z.B. die Daten im Modal anzeigen
 
             } catch (error) {
                 console.error("Error loading modal content:", error);
             }
         });
     });
-
 }
+
 
 // Funktion zum Ersetzen von Platzhaltern im modalContent
 function replaceValues(modalContent, pokemonData) {

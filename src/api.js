@@ -149,14 +149,23 @@ function extractEvolutionChain(chain) {
 }
 
 // Hauptfunktion, um die Daten zu erhalten und die Evolutionskette zu extrahieren
-async function getEvolutionData() {
+export async function getEvolutionDataForPokemon(pokemonName) {
     try {
-        const response = await fetch('https://pokeapi.co/api/v2/evolution-chain/1/');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Zuerst die Pokémon-Spezies-URL abrufen, um die Evolutionskette-URL zu erhalten
+        const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonName}/`);
+        if (!speciesResponse.ok) {
+            throw new Error(`HTTP error! status: ${speciesResponse.status}`);
         }
-        const data = await response.json();
-        const evolutionChain = extractEvolutionChain(data.chain);
+        const speciesData = await speciesResponse.json();
+        const evolutionChainUrl = speciesData.evolution_chain.url;
+
+        // Evolutionskette abrufen
+        const evolutionResponse = await fetch(evolutionChainUrl);
+        if (!evolutionResponse.ok) {
+            throw new Error(`HTTP error! status: ${evolutionResponse.status}`);
+        }
+        const evolutionData = await evolutionResponse.json();
+        const evolutionChain = extractEvolutionChain(evolutionData.chain);
 
         // Aktualisieren Sie die Thumbnail-URLs
         evolutionChain.thumbnail = await getPokemonThumbnail(evolutionChain.name);
@@ -167,7 +176,6 @@ async function getEvolutionData() {
             }
         }
 
-        console.log(evolutionChain);
         return evolutionChain;
 
     } catch (error) {
@@ -175,8 +183,7 @@ async function getEvolutionData() {
     }
 }
 
-// Rufen Sie die Hauptfunktion auf
-getEvolutionData();
+
 
 
 
