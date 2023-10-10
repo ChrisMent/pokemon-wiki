@@ -214,38 +214,85 @@
         </div>
     </div>
 
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Dropdown button
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Action</a></li>
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
-        </ul>
-    </div>
+    <ul class="nav nav-pills">
+        <li class="nav-item dropdown">
+            <a class="nav-link rounded-pill dropdown-toggle active" data-bs-toggle="dropdown" href="#" role="button"
+                aria-expanded="false">Select</a>
+            <ul class="dropdown-menu" id="gameOptions">
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="SM" checked>
+                        Sun/Moon (SM)
+                    </label>
+                </li>
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="USUM">
+                        Ultra Sun/ Ultra Moon (USUM)
+                    </label>
+                </li>
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="LGPE">
+                        Let´s Go, Pikachu/ Evoli (LGPE)
+                    </label>
+                </li>
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="SS">
+                        Sword/ Shield (SS)
+                    </label>
+                </li>
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="BDSP">
+                        Radiant Diamond/ Luminous pearl (BDSP)
+                    </label>
+                </li>
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="LA">
+                        Legendary Arceus (LA)
+                    </label>
+                </li>
+                <li class="dropdown-item">
+                    <label>
+                        <input type="radio" name="gameOption" value="SV">
+                        Karmesin/ Purpur (SV)
+                    </label>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill" aria-current="page" href="#">Level Up</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link rounded-pill" aria-current="page" href="#">Tutor</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill" aria-current="page" href="#">Egg</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill" aria-current="page" href="#">Machine</a>
+        </li>
+    </ul>
 
     </div>
     </div>
 
     <script>
-        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
-        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-            return new bootstrap.Dropdown(dropdownToggleEl)
-        })
-        document.addEventListener('DOMContentLoaded', function () {
-            const dropdownItems = document.querySelectorAll('#gameOptions .dropdown-item input[type="radio"]');
 
-            dropdownItems.forEach(item => {
-                item.addEventListener('change', function () {
-                    if (this.checked) {
-                        const selectedOption = document.getElementById('selectedOption');
-                        const labelText = this.parentElement.textContent.trim();
-                        selectedOption.textContent = labelText;
-                    }
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropdownLabels = document.querySelectorAll('#gameOptions .dropdown-item label');
+
+            dropdownLabels.forEach(label => {
+                label.addEventListener('click', function (e) {
+                    e.stopPropagation(); // Verhindert das Schließen des Dropdowns
                 });
             });
         });
+
 
 
     </script>

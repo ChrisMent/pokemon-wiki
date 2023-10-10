@@ -270,22 +270,25 @@ hr {
   justify-content: space-between;
 }
 
+/* Standardverhalten für größere Bildschirme */
 .nav-pills.second-menu-bar {
   white-space: nowrap;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
-  flex-wrap: nowrap; /* Verhindert das Umbruchverhalten von Flex-Elementen */
+  flex-wrap: nowrap;
+  position: relative;
+  z-index: 10;
+}
+
+.nav-container {
+  position: relative;
+  z-index: 1;
 }
 
 .dropdown-menu {
-  display: none;
   position: absolute;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid #ccc;
-  background-color: #fff;
+  z-index: 1000;
 }
 .dropdown-menu label {
   padding: 5px 10px;
