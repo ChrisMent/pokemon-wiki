@@ -160,7 +160,7 @@ body {
   justify-content: center;
   position: relative;
   bottom: -12px;
-  z-index: 3;
+  z-index: auto; /* Setzt den z-index auf den Standardwert zurück */
 }
 
 #card-second-sec {
@@ -270,15 +270,16 @@ hr {
   justify-content: space-between;
 }
 
-/* Standardverhalten für größere Bildschirme */
+/* Modal Tab - Moves */
+
 .nav-pills.second-menu-bar {
   white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   flex-wrap: nowrap;
-  position: relative;
-  z-index: 10;
+}
+
+.nav-item.dropdown {
+  position: static;
 }
 
 .nav-container {
@@ -288,8 +289,13 @@ hr {
 
 .dropdown-menu {
   position: absolute;
-  z-index: 1000;
+  z-index: 1050;
 }
+
+#gameOptions input[type="radio"] {
+  display: none;
+}
+
 .dropdown-menu label {
   padding: 5px 10px;
   cursor: pointer;
@@ -309,6 +315,8 @@ hr {
 .container-modal {
   overflow-y: auto;
 }
+
+/* Modal Actions */
 
 #closeModal {
   pointer-events: bounding-box;
@@ -372,8 +380,12 @@ hr {
 
   .nav-container {
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+
+  .nav-item.dropdown {
     position: relative;
   }
 
@@ -442,6 +454,7 @@ hr {
     max-width: auto !important;
   }
 }
+
 .lighter-symbol-svg path {
   fill: #fff;
   opacity: 0.23;
