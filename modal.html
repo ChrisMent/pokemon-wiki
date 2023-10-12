@@ -263,9 +263,11 @@
                     </div>
                     <div class="tab-pane fade" id="moves" role="tabpanel" aria-labelledby="moves-tab">
                         <!-- Inhalt für den Tab "Moves" -->
-                        <div class="nav-container">
-                            <ul class="nav nav-pills second-menu-bar" style="font-size: 14px;">
-                                <li class="nav-item dropdown">
+                        <!-- Dropdown außerhalb des nav-container -->
+                        <div class="subnav-wrapper">
+                            <div class="arrow-indicator">→</div>
+                            <div class="dropdown-container nav nav-pills">
+                                <li class="nav-item dropdown" style="font-size: 14px;">
                                     <a class="nav-link dropdown-toggle rounded-pill active dropdown-label"
                                         data-bs-toggle="dropdown" id="dropdownMenuButton">
                                         <span id="selectedOption">Select</span>
@@ -315,19 +317,33 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded-pill active" aria-current="page" href="#">Level Up</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded-pill" href="#">Tutor</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded-pill" href="#">Egg</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded-pill" href="#">Machine</a>
-                                </li>
-                            </ul>
+
+                            </div>
+
+                            <div class="nav-wrapper">
+                                <div class="nav-container">
+                                    <ul class="nav nav-pills second-menu-bar" style="font-size: 14px;">
+                                        <li class="nav-item">
+                                            <a class="nav-link rounded-pill active nav-option" aria-current="page"
+                                                href="#">Level
+                                                Up</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link rounded-pill nav-option" href="#">Tutor</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link rounded-pill nav-option" href="#">Egg</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link rounded-pill nav-option" href="#">Machine</a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                            </div>
+
+
+
                         </div>
                         <div class="table-responsive">
                             <table class="table table-borderless align-middle" style="font-size: 14px;">
@@ -362,11 +378,12 @@
                                         <td class="align-middle text-center">Badge</td>
                                         <td class="align-middle text-center">Icon</td>
                                     </tr>
+
                                 </tbody>
                             </table>
                         </div>
-                    </div>
 
+                    </div>
                 </div>
             </div>
 
@@ -378,16 +395,17 @@
 
     <script>
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const dropdownItems = document.querySelectorAll('#gameOptions .dropdown-item input[type="radio"]');
+        document.addEventListener("DOMContentLoaded", function () {
+            var navOptions = document.querySelectorAll('.nav-option');
 
-            dropdownItems.forEach(item => {
-                item.addEventListener('change', function () {
-                    if (this.checked) {
-                        const selectedOption = document.getElementById('selectedOption');
-                        const labelText = this.parentElement.textContent.trim();
-                        selectedOption.textContent = labelText;
-                    }
+            navOptions.forEach(function (navLink) {
+                navLink.addEventListener('click', function () {
+                    // Entfernen Sie 'active' von allen Links
+                    navOptions.forEach(function (innerNavLink) {
+                        innerNavLink.classList.remove('active');
+                    });
+                    // Fügen Sie 'active' zum angeklickten Link hinzu
+                    navLink.classList.add('active');
                 });
             });
         });

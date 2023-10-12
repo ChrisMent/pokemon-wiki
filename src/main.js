@@ -1,5 +1,5 @@
 // main.js
-import { getPokemonData } from './api.js'; 
+import { getPokemonData, getPokemonMoves } from './api.js'; 
 import { renderOverview, renderAllPokemon } from './render.js'; 
 import { capitalizeFirstLetter, lightenColor, getBackgroundColor ,toggleDropdown, updateSelectedOption} from './utils.js';
 import { searchPokemons } from './search.js'
@@ -18,6 +18,7 @@ async function main() {
 document.addEventListener("DOMContentLoaded", function() {
     // Hauptfunktion aufrufen
     main();
+    getPokemonMoves();
     // Event-Listener für das Dropdown hinzufügen
     const dropdownButton = document.getElementById('dropdownMenuButton');
     if (dropdownButton) {

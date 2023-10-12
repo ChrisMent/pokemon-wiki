@@ -105,7 +105,7 @@ body {
 .modal {
   display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 100;
   left: 0;
   top: 0;
   width: 100%;
@@ -141,6 +141,7 @@ body {
 .pokemon-image-container img {
   width: 234px;
   height: 214px;
+  z-index: 3;
 }
 
 .bi {
@@ -160,7 +161,6 @@ body {
   justify-content: center;
   position: relative;
   bottom: -12px;
-  z-index: auto; /* Setzt den z-index auf den Standardwert zurück */
 }
 
 #card-second-sec {
@@ -282,14 +282,40 @@ hr {
   position: static;
 }
 
-.nav-container {
+.nav-wrapper {
   position: relative;
-  z-index: 1;
 }
 
 .dropdown-menu {
   position: absolute;
   z-index: 1050;
+}
+
+.nav-item.dropdown .dropdown-menu {
+  position: absolute;
+  top: 100%; /* Positioniert das Dropdown direkt unter dem Toggle-Link */
+  left: 0; /* Startet das Dropdown am linken Rand des Nav-Items */
+  z-index: 1050;
+  width: auto; /* Lässt das Dropdown seine natürliche Breite annehmen */
+  border-right: solid;
+  padding-right: 10px;
+  border-width: 2px;
+  border-color: #b3b7bb;
+}
+
+.subnav-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.arrow-indicator {
+  display: none;
+}
+
+.dropdown-container {
+  list-style-type: none;
+  margin-right: 10px;
 }
 
 #gameOptions input[type="radio"] {
@@ -303,6 +329,7 @@ hr {
 .dropdown-menu label:hover {
   background-color: #f5f5f5;
 }
+
 .dropdown-item:active {
   background-color: transparent !important;
   color: inherit !important;
@@ -378,25 +405,33 @@ hr {
     font-size: small !important;
   }
 
-  .nav-container {
+  .nav-wrapper {
+    position: relative;
     overflow-x: auto;
-    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
-    position: relative;
   }
 
-  .nav-item.dropdown {
-    position: relative;
+  .nav-container {
+    white-space: nowrap;
+    flex-wrap: nowrap;
   }
 
-  .nav-container::after {
-    content: "→";
+  .arrow-indicator {
     position: absolute;
-    top: 50%;
-    right: 0px; /* Wert verringert, um den Pfeil näher an den Rand zu bringen */
-    transform: translateY(-50%);
+    display: block;
+    right: 25px; /* Sie können diesen Wert anpassen */
     opacity: 0.5;
     font-size: 14px;
+    z-index: 10; /* Stellen Sie sicher, dass der Pfeil über anderen Elementen angezeigt wird */
+  }
+
+  /* Verstecken des horizontalen Scrollbalkens */
+  .nav-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-wrapper {
+    scrollbar-width: none; /* Für Firefox */
   }
 
   .nav-pills.second-menu-bar::-webkit-scrollbar {
@@ -404,7 +439,11 @@ hr {
   }
 
   .nav-pills.second-menu-bar .nav-item {
-    flex-shrink: 0; /* Verhindert das Schrumpfen von Flex-Elementen */
+    flex-shrink: 0;
+  }
+
+  .dropdown-item {
+    font-size: 14px;
   }
 }
 
@@ -437,6 +476,10 @@ hr {
 
   .menu-bar {
     flex-wrap: nowrap; /* Verhindert das Umbruchverhalten von Flex-Elementen */
+  }
+
+  .dropdown-item {
+    font-size: 12px;
   }
 }
 

@@ -1,5 +1,67 @@
 import { capitalizeFirstLetter , formatNumber} from './utils.js';
 
+// Test API
+
+export let moves = [];
+
+
+export async function getPokemonMoves() {
+    let url = 'https://pokeapi.co/api/v2/pokemon/1';
+
+    try {
+        const responsePokemonMoves = await fetch(url);
+
+        if (!responsePokemonMoves.ok) {
+            throw new Error(`HTTP error! status: ${responsePokemonMoves.status}`);
+        }
+
+        let jsonResponsePokemonMoves = await responsePokemonMoves.json();
+        const viewAllMoveData = jsonResponsePokemonMoves.moves;
+
+        for (let resultMoveData of viewAllMoveData) {
+            const moveName = capitalizeFirstLetter(resultMoveData.move.name);
+            const moveDetailUrl = resultMoveData.move.url;
+
+            // Neuer Fetch für Move - Datails
+            const moveDetailsResponse = await fetch(moveDetailUrl);
+            if (!moveDetailsResponse.ok) {
+                throw new Error(`HTTP error! status: ${moveDetailsResponse.status}`);
+            }
+            const moveDetailsAll = await moveDetailsResponse.json();
+            const movePower = moveDetailsAll.power;
+            const moveType = moveDetailsAll.type.name;
+            const moveDamageClass = moveDetailsAll.damage_class.name;
+
+            const allMoves = {
+                moveName: moveName,
+                movePower: movePower,
+                moveType: moveType,
+                moveDamageClass: moveDamageClass,
+                moveDatailUrl: moveDetailUrl,
+                moveLearnMethod: [],  // Array für moveType
+                moveVersionsGroupe: []  // Array für moveVersion
+            };
+
+            for (let type of resultMoveData.version_group_details) {
+                const moveType = capitalizeFirstLetter(type.move_learn_method.name);
+                const moveVersion = capitalizeFirstLetter(type.version_group.name);
+
+                allMoves.moveLearnMethod.push(moveType);  // Fügt moveType zum Array hinzu
+                allMoves.moveVersionsGroupe.push(moveVersion);  // Fügt moveVersion zum Array hinzu
+            }
+
+            moves.push(allMoves);
+            console.log(allMoves);
+        }
+
+        //console.log(viewAllMoveData);
+    } catch (error) {
+        console.error("There was a problem with the fetch operation:", error);
+    }
+}
+
+
+
 // *** API - Abruf für die Übersichtsseite *** //
 
 // Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
