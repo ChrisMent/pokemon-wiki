@@ -84,6 +84,19 @@ export function initModal() {
                 closeModal.addEventListener('click', function() {
                     modal.style.display = "none";
                 });
+                // Schließt das Modal wenn außerhalb davon geklickt wird
+                document.addEventListener('click', function(event) {
+                    // Das Modal-Element
+                    let modal = document.querySelector('.pokemon-wrapper'); // Ersetzen Sie 'IhrModalID' durch die tatsächliche ID Ihres Modals
+                
+                    // Überprüfen, ob das Modal geöffnet ist
+                    if (modal.style.display === 'block') {
+                        // Überprüfen, ob außerhalb des Modals geklickt wurde
+                        if (!modal.contains(event.target)) {
+                            modal.style.display = 'none'; // Modal schließen
+                        }
+                    }
+                });
 
                 // Abrufen der Evolutionsdaten
                 const evolutionData = await getEvolutionDataForPokemon(pokemonName);
@@ -159,5 +172,6 @@ function replaceValues(modalContent, pokemonData) {
        
     return modalContent;
 }
+
 
 
