@@ -132,6 +132,7 @@ body {
   color: #fff;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .first-layer {
@@ -141,7 +142,6 @@ body {
 .pokemon-image-container img {
   width: 234px;
   height: 214px;
-  z-index: 3;
 }
 
 .bi {
@@ -161,6 +161,7 @@ body {
   justify-content: center;
   position: relative;
   bottom: -12px;
+  z-index: 3;
 }
 
 #card-second-sec {
@@ -288,14 +289,12 @@ hr {
 
 .dropdown-menu {
   position: absolute;
-  z-index: 1050;
 }
 
 .nav-item.dropdown .dropdown-menu {
   position: absolute;
   top: 100%; /* Positioniert das Dropdown direkt unter dem Toggle-Link */
   left: 0; /* Startet das Dropdown am linken Rand des Nav-Items */
-  z-index: 1050;
   width: auto; /* Lässt das Dropdown seine natürliche Breite annehmen */
   border-right: solid;
   padding-right: 10px;

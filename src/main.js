@@ -19,19 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Hauptfunktion aufrufen
     main();
     getPokemonMoves();
-    // Event-Listener für das Dropdown hinzufügen
-    const dropdownButton = document.getElementById('dropdownMenuButton');
-    if (dropdownButton) {
-        dropdownButton.addEventListener('click', toggleDropdown);
-    }
 
-    // Event-Listener für die Radio-Buttons hinzufügen
-    const radioButtons = document.querySelectorAll('input[name="gameOption"]');
-    radioButtons.forEach(radio => {
-        radio.addEventListener('change', function() {
-            updateSelectedOption(this);
-        });
-    });
 });
 
 
