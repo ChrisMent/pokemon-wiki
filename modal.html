@@ -275,44 +275,51 @@
                                     <ul class="dropdown-menu" id="gameOptions">
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="SM" checked>
+                                                <input type="radio" name="gameOption" value="SM"
+                                                    data-customValue="sun-moon" checked>
                                                 Sun/Moon (SM)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="USUM">
+                                                <input type="radio" name="gameOption" value="USUM"
+                                                    data-customValue="ultra-sun-ultra-moon">
                                                 Ultra Sun/ Ultra Moon (USUM)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="LGPE">
+                                                <input type="radio" name="gameOption" value="LGPE"
+                                                    data-customValue="lets-go-pikachu-lets-go-eevee">
                                                 Let´s Go, Pikachu/ Evoli (LGPE)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="SS">
+                                                <input type="radio" name="gameOption" value="SS"
+                                                    data-customValue="sword-shield">
                                                 Sword/ Shield (SS)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="BDSP">
-                                                Radiant Diamond/ Luminous pearl (BDSP)
+                                                <input type="radio" name="gameOption" value="BDSP"
+                                                    data-customValue="brilliant-diamond-and-shining-pearl">
+                                                Brilliant Diamond/ Shing Pearl (BDSP)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="LA">
-                                                Legendary Arceus (LA)
+                                                <input type="radio" name="gameOption" value="RS"
+                                                    data-customValue="ruby-sapphire">
+                                                Ruby-Sapphire (RS)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
-                                                <input type="radio" name="gameOption" value="SV">
-                                                Karmesin/ Purpur (SV)
+                                                <input type="radio" name="gameOption" value="CR"
+                                                    data-customValue="crystal">
+                                                Crystal (CR)
                                             </label>
                                         </li>
                                     </ul>
@@ -393,25 +400,6 @@
     </div>
     </div>
 
-    <script>
-
-        document.addEventListener("DOMContentLoaded", function () {
-            var navOptions = document.querySelectorAll('.nav-option');
-
-            navOptions.forEach(function (navLink) {
-                navLink.addEventListener('click', function () {
-                    // Entfernen Sie 'active' von allen Links
-                    navOptions.forEach(function (innerNavLink) {
-                        innerNavLink.classList.remove('active');
-                    });
-                    // Fügen Sie 'active' zum angeklickten Link hinzu
-                    navLink.classList.add('active');
-                });
-            });
-        });
-
-
-    </script>
 
 </body>
 

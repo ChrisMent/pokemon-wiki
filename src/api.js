@@ -120,6 +120,17 @@ export async function getPokemonData() {
                 // ... füge weitere Schlüssel-Wert-Paare hier hinzu
             };
 
+            const movePath = pokemonJson.moves
+
+            for (let allMoves of movePath){
+                
+                const moveName = allMoves.move.name;
+                console.log('Das sind die Move-Names: ', moveName)
+            }
+            
+
+            
+
             baseStats.total = baseStats.hp + baseStats.attack + baseStats.defense + baseStats.specialAttack + baseStats.specialDefense + baseStats.speed;
             
             let totalStatProgress = baseStats.total / 6
@@ -138,7 +149,6 @@ export async function getPokemonData() {
                 baseStats: baseStats, // Objekt kombinieren, mit dem Spread-Operator (...baseStats) oder als vollständiges Objekt mit baseStats: baseStats
                 totalStatProgress: totalStatProgress
             };
-
 
             // Zusätzlicher Fetch-Aufruf für die 'species'-URL des Pokémon
             // Daten aus: https://pokeapi.co/api/v2/pokemon-species/{id}/
@@ -174,6 +184,8 @@ export async function getPokemonData() {
   
         // Der return-Befehl gibt das Array allPokemonData zurück, das alle gesammelten Pokémon-Daten enthält. Damit diese die Funktion an anderer Stelle im Code genutzt werden kann z.B. die Daten im DOM darzustellen.
         return allPokemonData;
+
+
   
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);

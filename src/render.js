@@ -1,6 +1,7 @@
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter} from './utils.js';
-import { initModal} from './modal.js';
+import { initModal } from './modal.js';
+import { getPokemonMoves } from './api.js';
 
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
 
@@ -31,7 +32,7 @@ export function renderOverview(pokemonData) {
     <div class="col-6">
         <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}">
             <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
-            <h3 class="pokemon-name"><a class="pokemon-link" href="${pokemonData.name}">${capitalizeFirstLetter(pokemonData.name)}</a></h3>
+            <h3 class="pokemon-name"><a id="open-modal"class="pokemon-link" href="${pokemonData.name}">${capitalizeFirstLetter(pokemonData.name)}</a></h3>
             <div class="overview-columns">
                 <div class="overview-badges">
                     <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${pokemonData.types[0]}</span>
@@ -93,4 +94,10 @@ export function generateEvolutionHTML(evolutionChain) {
     }
 
     return htmlContent;
+}
+
+
+export function renderMoves(){
+
+
 }

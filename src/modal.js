@@ -20,6 +20,7 @@ export function initModal() {
         link.addEventListener('click', async function(e) {
             // Verhindert das Standardverhalten des Links
             e.preventDefault();
+            console.log('Pokemon link clicked!');
             
             // Extrahiert den Namen des angeklickten Pokémon aus dem href-Attribut
             const pokemonName = e.currentTarget.getAttribute('href');
@@ -52,7 +53,10 @@ export function initModal() {
                 textResponseModal = replaceValues(textResponseModal, selectedPokemon);
                 
                 // Setzt den modalContent in den DOM
-                document.querySelector('.modal-content').innerHTML = textResponseModal;
+                document.querySelector('.modal-content').innerHTML = textResponseModal;               
+                
+                setActiveNavigation();
+                bindDropdownEvents();
                 
                 // Aktualisiert die Fortschrittsbalken direkt nach dem Rendern des Modals
                 const progressBars = document.querySelectorAll('.progress-bar');
@@ -84,19 +88,7 @@ export function initModal() {
                 closeModal.addEventListener('click', function() {
                     modal.style.display = "none";
                 });
-                // Schließt das Modal wenn außerhalb davon geklickt wird
-                document.addEventListener('click', function(event) {
-                    // Das Modal-Element
-                    let modal = document.querySelector('.pokemon-wrapper'); // Ersetzen Sie 'IhrModalID' durch die tatsächliche ID Ihres Modals
-                
-                    // Überprüfen, ob das Modal geöffnet ist
-                    if (modal.style.display === 'block') {
-                        // Überprüfen, ob außerhalb des Modals geklickt wurde
-                        if (!modal.contains(event.target)) {
-                            modal.style.display = 'none'; // Modal schließen
-                        }
-                    }
-                });
+
 
                 // Abrufen der Evolutionsdaten
                 const evolutionData = await getEvolutionDataForPokemon(pokemonName);
@@ -173,5 +165,43 @@ function replaceValues(modalContent, pokemonData) {
     return modalContent;
 }
 
+export function bindDropdownEvents() {
+    // Event-Listener für alle Radio-Buttons im Dropdown hinzufügen
+    document.querySelectorAll('#gameOptions input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            // Überprüfen, ob der Radio-Button tatsächlich geändert wurde
+            if (this.checked) {
+                console.log('Radio button changed!');
 
+                // Den Wert des ausgewählten Radio-Buttons abrufen
+                let selectedValue = this.value;
+                
+                // Den Text des Elements mit der ID "selectedOption" ändern
+                document.getElementById('selectedOption').textContent = selectedValue;
+
+                // Dropdown schließen
+                let dropdownMenu = document.querySelector('.dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.remove('show');
+                }
+            }
+        });
+    });
+}
+
+export function setActiveNavigation(){
+    console.log('set navigation called!');
+    let navOptions = document.querySelectorAll('.nav-option');
+
+    navOptions.forEach(function (navLink) {
+        navLink.addEventListener('click', function () {
+            // Entfernen Sie 'active' von allen Links
+            navOptions.forEach(function (innerNavLink) {
+                innerNavLink.classList.remove('active');
+            });
+            // Fügen Sie 'active' zum angeklickten Link hinzu
+            navLink.classList.add('active');
+        });
+    });
+}
 
