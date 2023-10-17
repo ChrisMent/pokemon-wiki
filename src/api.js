@@ -267,5 +267,9 @@ export async function getEvolutionDataForPokemon(pokemonName) {
     }
 }
 
-
+export function getAllPokemonMoves() {
+    console.log(allPokemonMoves)
+    return allPokemonMoves;
+    
+}
 

@@ -1,6 +1,7 @@
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter} from './utils.js';
 import { initModal } from './modal.js';
+import { getAllPokemonMoves } from './api.js';
 
 
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
@@ -98,11 +99,17 @@ export function generateEvolutionHTML(evolutionChain) {
 
 
 export function displayMovesForGame(selectedGame, allPokemonMoves) {
-    // Filtern Sie die Bewegungen basierend auf dem ausgewählten Spiel
-    const movesForSelectedGame = allPokemonMoves.filter(move => {
-        return move.moveVersionGroup.includes(selectedGame);
-    });
+    console.log(allPokemonMoves);
 
+    // Filtern Sie die Bewegungen basierend auf dem ausgewählten Spiel
+    console.log(selectedGame);
+
+    // Standardwert setzen
+    selectedGame = selectedGame || 'sun-moon';
+
+    const movesForSelectedGame = allPokemonMoves.filter(move => {
+        return move.moveVersionGroup && move.moveVersionGroup.includes(selectedGame);
+    });
     // Generieren Sie das HTML für die Bewegungen
     const movesHTML = movesForSelectedGame.map(move => {
         return `
@@ -119,4 +126,5 @@ export function displayMovesForGame(selectedGame, allPokemonMoves) {
     // Fügen Sie das generierte HTML in die Tabelle ein
     document.querySelector('.table tbody').innerHTML = movesHTML;
 }
-
+const moves = getAllPokemonMoves();
+console.log(moves[0]);
