@@ -1,8 +1,8 @@
 // modal.js  
 
 // Importieren Sie benötigte Module und Funktionen
-import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
-import { generateEvolutionHTML } from './render.js';
+import { allPokemonData, allPokemonMoves, getEvolutionDataForPokemon } from './api.js';
+import { generateEvolutionHTML, displayMovesForGame } from './render.js';
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter } from './utils.js';
 
@@ -174,10 +174,12 @@ export function bindDropdownEvents() {
                 console.log('Radio button changed!');
 
                 // Den Wert des ausgewählten Radio-Buttons abrufen
-                let selectedValue = this.value;
-                
+                let selectedGame = this.getAttribute('data-customValue');
+            
                 // Den Text des Elements mit der ID "selectedOption" ändern
-                document.getElementById('selectedOption').textContent = selectedValue;
+                document.getElementById('selectedOption').textContent = selectedGame;
+
+                displayMovesForGame(selectedGame, allPokemonMoves);  // Beachten Sie, dass Sie hier Zugriff auf allPokemonMoves haben müssen
 
                 // Dropdown schließen
                 let dropdownMenu = document.querySelector('.dropdown-menu');
@@ -204,4 +206,3 @@ export function setActiveNavigation(){
         });
     });
 }
-

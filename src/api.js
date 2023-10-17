@@ -2,71 +2,11 @@ import { capitalizeFirstLetter , formatNumber} from './utils.js';
 
 // Test API
 
-export let moves = [];
-
-export async function getPokemonMoves() {
-    
-    let url = 'https://pokeapi.co/api/v2/pokemon/1';
-
-    try {
-        const responsePokemonMoves = await fetch(url);
-
-        if (!responsePokemonMoves.ok) {
-            throw new Error(`HTTP error! status: ${responsePokemonMoves.status}`);
-        }
-
-        let jsonResponsePokemonMoves = await responsePokemonMoves.json();
-        const viewAllMoveData = jsonResponsePokemonMoves.moves;
-
-        for (let resultMoveData of viewAllMoveData) {
-            const moveName = capitalizeFirstLetter(resultMoveData.move.name);
-            const moveDetailUrl = resultMoveData.move.url;
-
-            // Neuer Fetch für Move - Datails
-            const moveDetailsResponse = await fetch(moveDetailUrl);
-            if (!moveDetailsResponse.ok) {
-                throw new Error(`HTTP error! status: ${moveDetailsResponse.status}`);
-            }
-            const moveDetailsAll = await moveDetailsResponse.json();
-            const movePower = moveDetailsAll.power;
-            const moveType = moveDetailsAll.type.name;
-            const moveDamageClass = moveDetailsAll.damage_class.name;
-
-            const allMoves = {
-                moveName: moveName,
-                movePower: movePower,
-                moveType: moveType,
-                moveDamageClass: moveDamageClass,
-                moveDatailUrl: moveDetailUrl,
-                moveLearnMethod: [],  // Array für moveType
-                moveVersionsGroupe: []  // Array für moveVersion
-            };
-
-            for (let type of resultMoveData.version_group_details) {
-                const moveType = capitalizeFirstLetter(type.move_learn_method.name);
-                const moveVersion = capitalizeFirstLetter(type.version_group.name);
-
-                allMoves.moveLearnMethod.push(moveType);  // Fügt moveType zum Array hinzu
-                allMoves.moveVersionsGroupe.push(moveVersion);  // Fügt moveVersion zum Array hinzu
-            }
-
-            moves.push(allMoves);
-            //console.log(allMoves);
-        }
-
-        //console.log(viewAllMoveData);
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error);
-    }
-}
-
-
-
 // *** API - Abruf für die Übersichtsseite *** //
 
 // Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
 export const allPokemonData = []; 
-
+export const allPokemonMoves = []; // Dieses Array wird die Bewegungsdaten für das aktuelle Pokémon speichern
 
 export async function getPokemonData() {
     // API URL für den Start
@@ -139,9 +79,7 @@ export async function getPokemonData() {
 
             // Durch alle Datensätze aus AllData mit der Gruppe: "results" durchiterieren um alle Pokemons zu bekommen
 
-            const allPokemonMoves = []; // Dieses Array wird die Bewegungsdaten für das aktuelle Pokémon speichern
-
-            for (let resultMoveData of allMovesData) {
+               for (let resultMoveData of allMovesData) {
                 
                 // Extrahieren der URL für die Moves für jedes Pokemon damit die Daten aus den MoveDetails abgerufen werden können. 
                 const moveDetailUrl = resultMoveData.move.url; // Move url https://pokeapi.co/api/v2/move/x/
@@ -167,20 +105,21 @@ export async function getPokemonData() {
                     moveType: moveType,
                     moveDamageClass: moveDamageClass,
                     moveLearnMethod: [],  // Array für moveType
-                    moveVersionsGroupe: []  // Array für moveVersion
+                    moveVersionsGroupe: [],  // Array für moveVersion
+                    levelLearnedAt: [],  // Array für level_learned_at
                 }
                 // Hinzufügen der Bewegungsdaten zum allMoves-Array
                 allPokemonMoves.push(moveData);
 
-                for (let move of pokemonJson.moves) {
-                    for (let type of move.version_group_details) {
-                        const moveType = capitalizeFirstLetter(type.move_learn_method.name);
-                        const moveVersion = capitalizeFirstLetter(type.version_group.name);
-                
-                        moveData.moveLearnMethod.push(moveType);  // Fügt moveType zum Array hinzu
-                        moveData.moveVersionsGroupe.push(moveVersion);  // Fügt moveVersion zum Array hinzu
-                    }
-                    allMoves.push(moveData);  // Fügt moveData zum allMoves-Array hinzu
+                // Hier füllen wir die moveLearnMethod und moveVersionsGroupe Arrays für das aktuelle Move
+                for (let type of resultMoveData.version_group_details) {
+                    const moveType = capitalizeFirstLetter(type.move_learn_method.name);
+                    const moveVersion = capitalizeFirstLetter(type.version_group.name);
+                    const levelLearned = type.level_learned_at;  // Holen Sie sich den Wert von level_learned_at
+
+                    moveData.moveLearnMethod.push(moveType);  // Fügt moveType zum Array hinzu
+                    moveData.moveVersionsGroupe.push(moveVersion);  // Fügt moveVersion zum Array hinzu
+                    moveData.levelLearnedAt.push(levelLearned);  // Fügt level_learned_at zum Array hinzu
                 }
                 
                 
