@@ -3,10 +3,9 @@ import { capitalizeFirstLetter , formatNumber} from './utils.js';
 // Test API
 
 export let moves = [];
-export let allMoves = []
-
 
 export async function getPokemonMoves() {
+    
     let url = 'https://pokeapi.co/api/v2/pokemon/1';
 
     try {
@@ -67,12 +66,11 @@ export async function getPokemonMoves() {
 
 // Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
 export const allPokemonData = []; 
-console.log(allPokemonData)
+
 
 export async function getPokemonData() {
     // API URL für den Start
     let url = 'https://pokeapi.co/api/v2/pokemon/';
-      
     // Versuchen einen Response von der Schnittstelle zu bekommen
     try {
         // Asynchrones Abrufen der URL via Fetch
@@ -91,7 +89,7 @@ export async function getPokemonData() {
 
         // Durch alle Datensätze aus AllData mit der Gruppe: "results" durchiterieren um alle Pokemons zu bekommen
         for (let resultAllPokemons of allData) {
-            
+            let allMoves = [] 
             // Die URL aus AllData auslesen results[x].url z.B.: https://pokeapi.co/api/v2/pokemon/1/
             const pokemonResponse = await fetch(resultAllPokemons.url);
             
@@ -124,12 +122,7 @@ export async function getPokemonData() {
                 speed: pokemonJson.stats[5].base_stat,
                 // ... weitere Schlüssel-Wert-Paare hier hinzufügen
             };
-            const allMoveData = {
-                moveName: pokemonJson.moves.map(move => move.move.name),
-                //movePower: movePower
-            }
-            
-
+         
             // Berechnungen
             baseStats.total = baseStats.hp + baseStats.attack + baseStats.defense + baseStats.specialAttack + baseStats.specialDefense + baseStats.speed;
             
@@ -146,6 +139,8 @@ export async function getPokemonData() {
 
             // Durch alle Datensätze aus AllData mit der Gruppe: "results" durchiterieren um alle Pokemons zu bekommen
 
+            const allPokemonMoves = []; // Dieses Array wird die Bewegungsdaten für das aktuelle Pokémon speichern
+
             for (let resultMoveData of allMovesData) {
                 
                 // Extrahieren der URL für die Moves für jedes Pokemon damit die Daten aus den MoveDetails abgerufen werden können. 
@@ -158,32 +153,42 @@ export async function getPokemonData() {
                     throw new Error(`HTTP error! status: ${moveDetailsResponse.status}`);
                 }
 
-                // Zugriff auf alle Werte aus den Move Details
-                const moveDetailsAll = await moveDetailsResponse.json();
                 
+                const moveDetailsAll = await moveDetailsResponse.json();
+                // Holen von moveName
+                const moveName = resultMoveData.move.name;
+                // Zugriff auf alle Werte aus den Move Details
                 const movePower = moveDetailsAll.power;
                 const moveType = moveDetailsAll.type.name;
                 const moveDamageClass = moveDetailsAll.damage_class.name;
-                //console.log(moveDamageClass)
-
                 const moveData = {
+                    moveName: moveName,
                     movePower: movePower,
                     moveType: moveType,
-                    moveDamageClass: moveDamageClass
+                    moveDamageClass: moveDamageClass,
+                    moveLearnMethod: [],  // Array für moveType
+                    moveVersionsGroupe: []  // Array für moveVersion
                 }
-                console.log(moveData)
-
                 // Hinzufügen der Bewegungsdaten zum allMoves-Array
-                allMoves.push(moveData);
+                allPokemonMoves.push(moveData);
 
- 
+                for (let move of pokemonJson.moves) {
+                    for (let type of move.version_group_details) {
+                        const moveType = capitalizeFirstLetter(type.move_learn_method.name);
+                        const moveVersion = capitalizeFirstLetter(type.version_group.name);
+                
+                        moveData.moveLearnMethod.push(moveType);  // Fügt moveType zum Array hinzu
+                        moveData.moveVersionsGroupe.push(moveVersion);  // Fügt moveVersion zum Array hinzu
+                    }
+                    allMoves.push(moveData);  // Fügt moveData zum allMoves-Array hinzu
+                }
+                
+                
 
             }
 
             // console.log('Das sind die Move-Names für', resultAllPokemons.name, ':', moveNames);
            
-
-  
             // Erstellung eine Objektes mit mehreren Variabeln
             const pokemonData = {
                 id: formatNumber(id),
@@ -197,8 +202,11 @@ export async function getPokemonData() {
                 abilities: abilities,
                 baseStats: baseStats, // Objekt kombinieren, mit dem Spread-Operator (...baseStats) oder als vollständiges Objekt mit baseStats: baseStats
                 totalStatProgress: totalStatProgress,
-                
+                allPokemonMoves: allPokemonMoves
+                                
             };
+
+            console.log('Das sind alle Pokemondaten: ',pokemonData)
 
             // Zusätzlicher Fetch-Aufruf für die 'species'-URL des Pokémon
             // Daten aus: https://pokeapi.co/api/v2/pokemon-species/{id}/
@@ -225,9 +233,7 @@ export async function getPokemonData() {
             pokemonData.eggGroups = eggGroups
             pokemonData.captureRate = captureRate
 
-            //! Hinzufügen des allMoves-Arrays zum pokemonData-Objekt
-            pokemonData.moves = allMoves;
-                        
+                       
             // Speichern der Daten in einem Array.
 
             // Mit allPokemonData.push(pokemonData) werden die Daten zu einem Array hinzugefügt, aber dieses Array ist nur innerhalb der Funktion sichtbar. Wenn die gesammelten Daten in einem anderen Teil Ihres Programms verwenden werden sollen, müssen diese mit return zurückgeben.
