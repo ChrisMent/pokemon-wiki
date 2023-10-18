@@ -58,6 +58,7 @@ export async function initModal() {
                 
                 setActiveNavigation();
                 bindDropdownEvents();
+                displayMovesForGame('sun-moon', selectedPokemon.allPokemonMoves, selectedPokemon);
                 
                 // Aktualisiert die Fortschrittsbalken direkt nach dem Rendern des Modals
                 const progressBars = document.querySelectorAll('.progress-bar');

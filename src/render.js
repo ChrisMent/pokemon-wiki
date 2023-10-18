@@ -99,13 +99,7 @@ export function generateEvolutionHTML(evolutionChain) {
 }
 
 
-export async function displayMovesForGame(selectedGame) {
-    const allPokemonMoves = await getAllPokemonMoves();
-    console.log(allPokemonMoves);
-
-    // Filtern Sie die Bewegungen basierend auf dem ausgewählten Spiel
-    console.log(selectedGame);
-
+export function displayMovesForGame(selectedGame, allPokemonMoves, selectedPokemon) {
     // Standardwert setzen
     selectedGame = selectedGame || 'sun-moon';
 
@@ -135,7 +129,3 @@ export async function displayMovesForGame(selectedGame) {
     }
 }
 
-
-
-// Wenn Sie die Daten beim Laden der Seite rendern möchten, können Sie displayMovesForGame direkt aufrufen:
-displayMovesForGame('sun-moon'); // oder welches Spiel Sie als Standardwert setzen möchten
