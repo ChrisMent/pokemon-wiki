@@ -8,9 +8,10 @@ import { capitalizeFirstLetter } from './utils.js';
 
 
 // Hauptfunktion zum Initialisieren des Modals
-export function initModal() {
+export async function initModal() {
     // Zugriff auf das Modal-Element
     const modal = document.getElementById('pokemonModal');
+
     
     // Zugriff auf alle Pokémon-Links
     const pokemonLinks = document.querySelectorAll('.pokemon-link');
@@ -20,7 +21,7 @@ export function initModal() {
         link.addEventListener('click', async function(e) {
             // Verhindert das Standardverhalten des Links
             e.preventDefault();
-            console.log('Pokemon link clicked!');
+            // console.log('Pokemon link clicked!');
             
             // Extrahiert den Namen des angeklickten Pokémon aus dem href-Attribut
             const pokemonName = e.currentTarget.getAttribute('href');
@@ -89,11 +90,13 @@ export function initModal() {
                     modal.style.display = "none";
                 });
 
-
                 // Abrufen der Evolutionsdaten
                 const evolutionData = await getEvolutionDataForPokemon(pokemonName);
-                console.log(evolutionData);
+                // console.log(evolutionData);
                 // Hier können Sie weitere Aktionen ausführen, z.B. die Daten im Modal anzeigen
+
+                // Hier rufen Sie die Funktion auf, um die Bewegungen für das ausgewählte Spiel anzuzeigen
+                 
 
                 // Generieren des HTML-Codes für die Evolutionsdaten
                 const evolutionHTML = generateEvolutionHTML(evolutionData);
@@ -171,7 +174,7 @@ export function bindDropdownEvents() {
         radio.addEventListener('change', function() {
             // Überprüfen, ob der Radio-Button tatsächlich geändert wurde
             if (this.checked) {
-                console.log('Radio button changed!');
+                // console.log('Radio button changed!');
 
                 // Den Wert des ausgewählten Radio-Buttons abrufen
                 let selectedGame = this.getAttribute('data-customValue');
@@ -192,7 +195,7 @@ export function bindDropdownEvents() {
 }
 
 export function setActiveNavigation(){
-    console.log('set navigation called!');
+    // console.log('set navigation called!');
     let navOptions = document.querySelectorAll('.nav-option');
 
     navOptions.forEach(function (navLink) {

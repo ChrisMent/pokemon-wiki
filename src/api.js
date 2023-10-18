@@ -145,7 +145,7 @@ export async function getPokemonData() {
                                 
             };
 
-            console.log('Das sind alle Pokemondaten: ',pokemonData)
+            // console.log('Das sind alle Pokemondaten: ',pokemonData)
 
             // Zusätzlicher Fetch-Aufruf für die 'species'-URL des Pokémon
             // Daten aus: https://pokeapi.co/api/v2/pokemon-species/{id}/
@@ -187,6 +187,14 @@ export async function getPokemonData() {
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
     }
+}
+
+export async function getAllPokemonMoves() {
+    // Hier sollten Sie Ihren asynchronen Code haben, der die Daten in allPokemonMoves lädt
+    // Zum Beispiel:
+    await getPokemonData(); // Angenommen, fetchDataFunction ist Ihre asynchrone Funktion, die die Daten lädt
+
+    return allPokemonMoves;
 }
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
@@ -264,12 +272,4 @@ export async function getEvolutionDataForPokemon(pokemonName) {
 
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
-    }
-}
-
-export function getAllPokemonMoves() {
-    console.log(allPokemonMoves)
-    return allPokemonMoves;
-    
-}
-
+    }}

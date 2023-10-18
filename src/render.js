@@ -4,6 +4,7 @@ import { initModal } from './modal.js';
 import { getAllPokemonMoves } from './api.js';
 
 
+
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
 
 // --> Für jedes dieser Objekte wird die renderOverview-Funktion aufgerufen
@@ -24,7 +25,7 @@ export function renderAllPokemon(allPokemonData) {
 // Diese Funktion ist für ein einzelnes Pokémon-Objekt gedacht
 export function renderOverview(pokemonData) {
     const pokemonContainer = document.getElementById("pokemon-container");
-   
+    
    // Setzen der Hintergrundfarbe je nach dem ersten Pokemon-Typ
     const bgColor = getBackgroundColor(pokemonData.types[0]);
 
@@ -98,7 +99,8 @@ export function generateEvolutionHTML(evolutionChain) {
 }
 
 
-export function displayMovesForGame(selectedGame, allPokemonMoves) {
+export async function displayMovesForGame(selectedGame) {
+    const allPokemonMoves = await getAllPokemonMoves();
     console.log(allPokemonMoves);
 
     // Filtern Sie die Bewegungen basierend auf dem ausgewählten Spiel
@@ -110,6 +112,7 @@ export function displayMovesForGame(selectedGame, allPokemonMoves) {
     const movesForSelectedGame = allPokemonMoves.filter(move => {
         return move.moveVersionGroup && move.moveVersionGroup.includes(selectedGame);
     });
+
     // Generieren Sie das HTML für die Bewegungen
     const movesHTML = movesForSelectedGame.map(move => {
         return `
@@ -123,8 +126,16 @@ export function displayMovesForGame(selectedGame, allPokemonMoves) {
         `;
     }).join('');
 
-    // Fügen Sie das generierte HTML in die Tabelle ein
-    document.querySelector('.table tbody').innerHTML = movesHTML;
+    // Überprüfen Sie, ob das Element existiert, bevor Sie seinen innerHTML setzen
+    const tableBody = document.querySelector('.table tbody');
+    if (tableBody) {
+        tableBody.innerHTML = movesHTML;
+    } else {
+        console.error("Element .table tbody nicht gefunden!");
+    }
 }
-const moves = getAllPokemonMoves();
-console.log(moves[0]);
+
+
+
+// Wenn Sie die Daten beim Laden der Seite rendern möchten, können Sie displayMovesForGame direkt aufrufen:
+displayMovesForGame('sun-moon'); // oder welches Spiel Sie als Standardwert setzen möchten
