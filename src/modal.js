@@ -246,8 +246,8 @@ export function updateMovesDisplay() {
     //console.log('Filtered Pokemon Moves:', filteredMoves);
     
     //console.log(Array.isArray(filteredMoves));  // Sollte "true" zurückgeben, wenn es ein Array ist
-    const strongMoves = filteredMoves.filter(move => move.movePower > 50);
-    console.log('DAs ist die Stärke: ', strongMoves);
+    const weakMoves = filteredMoves.filter(move => move.movePower <= 50);
+    console.log(weakMoves);
     displayMovesForGame(filteredMoves);
 }
 
