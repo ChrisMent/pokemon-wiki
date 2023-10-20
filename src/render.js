@@ -1,7 +1,7 @@
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter} from './utils.js';
-import { initModal } from './modal.js';
-import { getAllPokemonMoves } from './api.js';
+import { initModal, updateMovesDisplay } from './modal.js';
+
 
 
 
@@ -99,16 +99,10 @@ export function generateEvolutionHTML(evolutionChain) {
 }
 
 
-export function displayMovesForGame(selectedGame, allPokemonMoves, selectedPokemon) {
-    // Standardwert setzen
-    selectedGame = selectedGame || 'sun-moon';
-
-    const movesForSelectedGame = allPokemonMoves.filter(move => {
-        return move.moveVersionGroup && move.moveVersionGroup.includes(selectedGame);
-    });
-
+export function displayMovesForGame(filteredMoves) {
     // Generieren Sie das HTML für die Bewegungen
-    const movesHTML = movesForSelectedGame.map(move => {
+    console.log(typeof filteredMoves);
+    const movesHTML = filteredMoves.map(move => {
         return `
             <tr>
                 <th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>
@@ -121,11 +115,10 @@ export function displayMovesForGame(selectedGame, allPokemonMoves, selectedPokem
     }).join('');
 
     // Überprüfen Sie, ob das Element existiert, bevor Sie seinen innerHTML setzen
-    const tableBody = document.querySelector('.table tbody');
-    if (tableBody) {
-        tableBody.innerHTML = movesHTML;
-    } else {
-        console.error("Element .table tbody nicht gefunden!");
-    }
+    const tableMoves = document.getElementById('pokemon-moves');
+    tableMoves.innerHTML = movesHTML;
 }
+
+
+
 

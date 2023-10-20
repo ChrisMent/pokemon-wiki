@@ -68,8 +68,7 @@ export async function getPokemonData() {
             
             let totalStatProgress = baseStats.total / 6
 
-            // console.log(moveNames)
-
+            
             //** Datenpunkte aus pokemonJson ENDE */ 
 
 
@@ -100,6 +99,7 @@ export async function getPokemonData() {
                 const moveType = moveDetailsAll.type.name;
                 const moveDamageClass = moveDetailsAll.damage_class.name;
                 const moveData = {
+                    pokemonName: name,
                     moveName: moveName,
                     movePower: movePower,
                     moveType: moveType,
@@ -110,6 +110,7 @@ export async function getPokemonData() {
                 }
                 // Hinzufügen der Bewegungsdaten zum allMoves-Array
                 allPokemonMoves.push(moveData);
+                
 
                 // Hier füllen wir die moveLearnMethod und moveVersionsGroupe Arrays für das aktuelle Move
                 for (let type of resultMoveData.version_group_details) {
@@ -126,7 +127,7 @@ export async function getPokemonData() {
 
             }
 
-            // console.log('Das sind die Move-Names für', resultAllPokemons.name, ':', moveNames);
+            //console.log('Das sind die Move-Names für', resultAllPokemons.name, ':', allPokemonMoves);
            
             // Erstellung eine Objektes mit mehreren Variabeln
             const pokemonData = {
@@ -187,14 +188,6 @@ export async function getPokemonData() {
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
     }
-}
-
-export async function getAllPokemonMoves() {
-    // Hier sollten Sie Ihren asynchronen Code haben, der die Daten in allPokemonMoves lädt
-    // Zum Beispiel:
-    await getPokemonData(); // Angenommen, fetchDataFunction ist Ihre asynchrone Funktion, die die Daten lädt
-
-    return allPokemonMoves;
 }
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
@@ -273,3 +266,4 @@ export async function getEvolutionDataForPokemon(pokemonName) {
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
     }}
+

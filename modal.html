@@ -276,21 +276,21 @@
                                         <li class="dropdown-item">
                                             <label>
                                                 <input type="radio" name="gameOption" value="SM"
-                                                    data-customValue="sun-moon" checked>
+                                                    data-customValue="Sun-moon" checked>
                                                 Sun/Moon (SM)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
                                                 <input type="radio" name="gameOption" value="USUM"
-                                                    data-customValue="ultra-sun-ultra-moon">
+                                                    data-customValue="Ultra-sun-ultra-moon">
                                                 Ultra Sun/ Ultra Moon (USUM)
                                             </label>
                                         </li>
                                         <li class="dropdown-item">
                                             <label>
                                                 <input type="radio" name="gameOption" value="LGPE"
-                                                    data-customValue="lets-go-pikachu-lets-go-eevee">
+                                                    data-customValue="Lets-go-pikachu-lets-go-eevee">
                                                 Let´s Go, Pikachu/ Evoli (LGPE)
                                             </label>
                                         </li>
@@ -308,20 +308,7 @@
                                                 Brilliant Diamond/ Shing Pearl (BDSP)
                                             </label>
                                         </li>
-                                        <li class="dropdown-item">
-                                            <label>
-                                                <input type="radio" name="gameOption" value="RS"
-                                                    data-customValue="ruby-sapphire">
-                                                Ruby-Sapphire (RS)
-                                            </label>
-                                        </li>
-                                        <li class="dropdown-item">
-                                            <label>
-                                                <input type="radio" name="gameOption" value="CR"
-                                                    data-customValue="crystal">
-                                                Crystal (CR)
-                                            </label>
-                                        </li>
+
                                     </ul>
                                 </li>
 
@@ -332,19 +319,22 @@
                                     <ul class="nav nav-pills second-menu-bar" style="font-size: 14px;">
                                         <li class="nav-item">
                                             <a class="nav-link rounded-pill active nav-option" aria-current="page"
-                                                href="#">Level
-                                                Up</a>
+                                                href="#" data-customValue="Level-up">Level Up</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link rounded-pill nav-option" href="#">Tutor</a>
+                                            <a class="nav-link rounded-pill nav-option" href="#"
+                                                data-customValue="Tutor">Tutor</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link rounded-pill nav-option" href="#">Egg</a>
+                                            <a class="nav-link rounded-pill nav-option" href="#"
+                                                data-customValue="Egg">Egg</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link rounded-pill nav-option" href="#">Machine</a>
+                                            <a class="nav-link rounded-pill nav-option" href="#"
+                                                data-customValue="Machine">Machine</a>
                                         </li>
                                     </ul>
+
                                 </div>
 
                             </div>
@@ -363,7 +353,7 @@
                                         <th class="align-middle text-center" scope="col">Damage Class</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="pokemon-moves">
                                     <tr>
                                         <th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>
                                         <td class="align-middle text-center">${move.moveName}</td>

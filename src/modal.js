@@ -28,6 +28,7 @@ export async function initModal() {
             
             // Sucht nach den Daten des ausgewählten Pokémon im allPokemonData Array
             const selectedPokemon = allPokemonData.find(pokemon => pokemon.name === pokemonName);
+            //console.log("Selected Pokemon:", selectedPokemon);
 
             // Überprüft, ob Daten für das ausgewählte Pokémon gefunden wurden
             if (!selectedPokemon) {
@@ -58,8 +59,14 @@ export async function initModal() {
                 
                 setActiveNavigation();
                 bindDropdownEvents();
-                displayMovesForGame('sun-moon', selectedPokemon.allPokemonMoves, selectedPokemon);
+
+                const selectedPokemonMoves = allPokemonMoves.filter(move => move.pokemonName === selectedPokemon.name);
+                // console.log('MovePokemon: ', selectedPokemonMoves);
                 
+
+                // Nach dem Setzen des modalContents aufrufen
+                displayMovesForGame('sun-moon', selectedPokemonMoves);
+
                 // Aktualisiert die Fortschrittsbalken direkt nach dem Rendern des Modals
                 const progressBars = document.querySelectorAll('.progress-bar');
                 progressBars.forEach(progressBar => {
@@ -175,21 +182,20 @@ export function bindDropdownEvents() {
         radio.addEventListener('change', function() {
             // Überprüfen, ob der Radio-Button tatsächlich geändert wurde
             if (this.checked) {
-                // console.log('Radio button changed!');
-
                 // Den Wert des ausgewählten Radio-Buttons abrufen
                 let selectedGame = this.getAttribute('data-customValue');
-            
+                
                 // Den Text des Elements mit der ID "selectedOption" ändern
                 document.getElementById('selectedOption').textContent = selectedGame;
-
-                displayMovesForGame(selectedGame, allPokemonMoves);  // Beachten Sie, dass Sie hier Zugriff auf allPokemonMoves haben müssen
 
                 // Dropdown schließen
                 let dropdownMenu = document.querySelector('.dropdown-menu');
                 if (dropdownMenu) {
                     dropdownMenu.classList.remove('show');
                 }
+
+                // Moves basierend auf den ausgewählten Optionen aktualisieren
+                updateMovesDisplay();
             }
         });
     });
@@ -208,5 +214,40 @@ export function setActiveNavigation(){
             // Fügen Sie 'active' zum angeklickten Link hinzu
             navLink.classList.add('active');
         });
+        updateMovesDisplay();
     });
 }
+
+export function updateMovesDisplay() {
+    // Ausgewähltes Spiel abrufen
+    const selectedGame = document.querySelector('input[name="gameOption"]:checked').getAttribute('data-customValue');
+    
+    // Ausgewählte Lernmethode abrufen
+    const selectedLearnMethod = document.querySelector('.nav-option.active').getAttribute('data-customValue');
+
+    // Moves basierend auf den ausgewählten Optionen filtern
+    const filteredMoves = allPokemonMoves.map(move => {
+        const gameIndex = move.moveVersionsGroupe.indexOf(selectedGame);
+        if (gameIndex !== -1 && move.moveLearnMethod[gameIndex] === selectedLearnMethod) {
+            return {
+            moveName: move.moveName,
+            movePower: move.movePower,
+            moveType: move.moveType,
+            moveDamageClass: move.moveDamageClass,
+            levelLearnedAt: move.levelLearnedAt[gameIndex],
+            moveLearnMethod: move.moveLearnMethod[gameIndex],  // Hier hinzugefügt
+        
+            };
+        }
+        return null;
+    }).filter(move => move !== null);
+    console.log('Selected game:', selectedGame);
+    console.log('Selected learn method:', selectedLearnMethod);
+    //console.log('Filtered Pokemon Moves:', filteredMoves);
+    
+    //console.log(Array.isArray(filteredMoves));  // Sollte "true" zurückgeben, wenn es ein Array ist
+    const strongMoves = filteredMoves.filter(move => move.movePower > 50);
+    console.log('DAs ist die Stärke: ', strongMoves);
+    displayMovesForGame(filteredMoves);
+}
+
