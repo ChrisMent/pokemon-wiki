@@ -267,3 +267,5 @@ export async function getEvolutionDataForPokemon(pokemonName) {
         console.error("There was a problem with the fetch operation:", error);
     }}
 
+    // console.log('So sieht die erste Zeile von pokemonAllmoves aus', allPokemonMoves)
+

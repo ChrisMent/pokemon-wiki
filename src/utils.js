@@ -4,6 +4,10 @@
 export function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+
+export function capitalizeEachWord(str) {
+    return str.split('-').map(capitalizeFirstLetter).join('-');
+}
   
 // Hintergrundfarben heller machen
 export function lightenColor(color, percent) {

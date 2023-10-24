@@ -1,5 +1,5 @@
 import { lightenColor, getBackgroundColor } from './utils.js';
-import { capitalizeFirstLetter} from './utils.js';
+import { capitalizeFirstLetter , capitalizeEachWord} from './utils.js';
 import { initModal, updateMovesDisplay } from './modal.js';
 
 
@@ -100,16 +100,24 @@ export function generateEvolutionHTML(evolutionChain) {
 
 
 export function displayMovesForGame(filteredMoves) {
-    // Generieren Sie das HTML für die Bewegungen
-    console.log(typeof filteredMoves);
+    //console.log('displayMovesForGame wurde aufgerufen');
+
+    if (!Array.isArray(filteredMoves)) {
+        console.error('filteredMoves ist kein Array:', filteredMoves);
+        return; // Verlassen Sie die Funktion frühzeitig
+    }
+
+    // Hier sortieren Sie die Bewegungen basierend auf dem Level
+    filteredMoves.sort((a, b) => a.levelLearnedAt - b.levelLearnedAt);
+
     const movesHTML = filteredMoves.map(move => {
         return `
             <tr>
                 <th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>
-                <td class="align-middle text-center">${move.moveName}</td>
-                <td class="align-middle text-center">${move.movePower}</td>
-                <td class="align-middle text-center">${move.moveType}</td>
-                <td class="align-middle text-center">${move.moveDamageClass}</td>
+                <td class="align-middle text-center">${capitalizeEachWord(move.moveName)}</td>
+                <td class="align-middle text-center">${move.movePower ? move.movePower : '-'}</td>
+                <td class="align-middle text-center">${capitalizeEachWord(move.moveType)}</td>
+                <td class="align-middle text-center">${capitalizeEachWord(move.moveDamageClass)}</td>
             </tr>
         `;
     }).join('');
@@ -118,6 +126,10 @@ export function displayMovesForGame(filteredMoves) {
     const tableMoves = document.getElementById('pokemon-moves');
     tableMoves.innerHTML = movesHTML;
 }
+
+
+
+
 
 
 
