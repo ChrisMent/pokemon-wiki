@@ -2,11 +2,11 @@
 
 // Importieren Sie benötigte Module und Funktionen
 import { allPokemonData, allPokemonMoves, getEvolutionDataForPokemon } from './api.js';
-import { generateEvolutionHTML, displayMovesForGame } from './render.js';
+import { generateEvolutionHTML, renderMoves, updateTableHeader  } from './render.js';
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter } from './utils.js';
 
-let selectedGame = "Sun-moon";
+let selectedPokemonMoves = [];  // Globale Definition
 
 // Hauptfunktion zum Initialisieren des Modals
 export async function initModal() {
@@ -61,22 +61,18 @@ export async function initModal() {
                 
 
 
-                const selectedPokemonMoves = allPokemonMoves.filter(move => move.pokemonName === selectedPokemon.name);
+                selectedPokemonMoves = allPokemonMoves.filter(move => move.pokemonName === selectedPokemon.name);
+                
                 // console.log('MovePokemon: ', selectedPokemonMoves);              
                 // Nach dem Setzen des modalContents aufrufen
-                console.log("setActiveNavigation wird aufgerufen...");
-                setActiveNavigation(selectedPokemonMoves);
-                bindDropdownEvents(selectedPokemonMoves);
+                //console.log("setActiveNavigation wird aufgerufen...");
+                
+
+                //setActiveNavigation(selectedPokemonMoves);
+                //bindDropdownEvents(selectedPokemonMoves);
                 // Set default learning method to "Level-up"
-                const levelUpMethod = document.querySelector('.nav-option[data-customValue="level-up"]');
-                if (levelUpMethod) {
-                    levelUpMethod.click();
-                } else {
-                    displayMovesForGame(selectedGame, selectedPokemonMoves);
-                }
 
-
-                console.log(selectedPokemonMoves)
+                //console.log(selectedPokemonMoves)
                 // Aktualisiert die Fortschrittsbalken direkt nach dem Rendern des Modals
                 const progressBars = document.querySelectorAll('.progress-bar');
                 progressBars.forEach(progressBar => {
@@ -124,7 +120,10 @@ export async function initModal() {
                 
                 //console.log(document.querySelectorAll('.nav-option'));
 
-
+                watchDropdown(selectedPokemonMoves);
+                watchNavigationMenu(selectedPokemonMoves);
+                applyFilters(selectedPokemonMoves);
+                
 
             } catch (error) {
                 console.error("Error loading modal content:", error);
@@ -133,6 +132,85 @@ export async function initModal() {
     });
 }
 
+function watchDropdown(selectedPokemonMoves) {
+    // Event-Listener für alle Radio-Buttons im Dropdown hinzufügen
+    document.querySelectorAll('#gameOptions input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            // Überprüfen, ob der Radio-Button tatsächlich geändert wurde
+            if (this.checked) {
+                // Den Wert des ausgewählten Radio-Buttons abrufen
+                let selectedGame = this.getAttribute('data-customValue');
+
+                // Den Text des ausgewählten Spiels abrufen
+                let selectedGameOption = this.value;
+
+                // Den Text des Elements mit der ID "selectedOption" ändern
+                document.getElementById('selectedOption').textContent = selectedGameOption;
+
+                // Dropdown schließen (optional)
+                let dropdownMenu = document.querySelector('.dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.remove('show');
+                }
+
+                // Moves basierend auf den ausgewählten Optionen aktualisieren
+                applyFilters(selectedPokemonMoves, selectedGame);
+            }
+        });
+    });
+}
+
+
+export function watchNavigationMenu(selectedPokemonMoves) {
+    const navOptions = document.querySelectorAll('.nav-option');
+    navOptions.forEach(navLink => {
+        navLink.addEventListener('click', function() {
+            const selectedLearnMethod = this.getAttribute('data-customValue');
+
+            // Entfernen Sie 'active' von allen Links
+            navOptions.forEach(function (innerNavLink) {
+                innerNavLink.classList.remove('active');
+            });
+            // Fügen Sie 'active' zum angeklickten Link hinzu
+            navLink.classList.add('active');
+
+            applyFilters(selectedPokemonMoves, null, selectedLearnMethod);
+        });
+    });
+}
+
+let currentGame = 'Sun-moon'; // Standardwert
+let currentLearnMethod = 'Level-up'; // Standardwert
+
+export function applyFilters(selectedPokemonMoves, game = currentGame, learnMethod = currentLearnMethod) {
+    // Aktualisiere die aktuellen Werte, wenn sie übergeben werden
+    if (game) currentGame = game;
+    if (learnMethod) currentLearnMethod = learnMethod;
+
+
+    if (!Array.isArray(selectedPokemonMoves)) {
+        console.error("selectedPokemonMoves is not an array:", selectedPokemonMoves);
+        return;
+    }
+
+    const filteredMoves = selectedPokemonMoves.map(move => {
+        const gameIndex = move.moveVersionsGroupe.indexOf(currentGame);
+        if (gameIndex !== -1 && move.moveLearnMethod[gameIndex] === currentLearnMethod) {
+            return {
+                moveName: move.moveName,
+                movePower: move.movePower,
+                moveType: move.moveType,
+                moveDamageClass: move.moveDamageClass,
+                levelLearnedAt: move.levelLearnedAt[gameIndex],
+                moveLearnMethod: move.moveLearnMethod[gameIndex]
+            };
+        }
+        return null;
+    }).filter(move => move !== null);
+
+    updateTableHeader(currentLearnMethod);
+    renderMoves(filteredMoves, currentLearnMethod);
+}
 
 // Funktion zum Ersetzen von Platzhaltern im modalContent
 function replaceValues(modalContent, pokemonData) {
@@ -188,84 +266,5 @@ function replaceValues(modalContent, pokemonData) {
     modalContent = modalContent.replace(/{{totalProgress}}/g, pokemonData.totalStatProgress);
        
     return modalContent;
-}
-
-export function bindDropdownEvents(selectedPokemonMoves) {
-    // Event-Listener für alle Radio-Buttons im Dropdown hinzufügen
-    document.querySelectorAll('#gameOptions input[type="radio"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            // Überprüfen, ob der Radio-Button tatsächlich geändert wurde
-            if (this.checked) {
-                // Den Wert des ausgewählten Radio-Buttons abrufen
-                let selectedGame = this.getAttribute('data-customValue');
-                let selectedGameOption = document.querySelector('input[name="gameOption"]:checked').value;
-                // Den Text des Elements mit der ID "selectedOption" ändern
-                document.getElementById('selectedOption').textContent = selectedGameOption;
-
-                // Dropdown schließen
-                let dropdownMenu = document.querySelector('.dropdown-menu');
-                if (dropdownMenu) {
-                    dropdownMenu.classList.remove('show');
-                }
-
-                // Moves basierend auf den ausgewählten Optionen aktualisieren
-                updateMovesDisplay(selectedPokemonMoves);
-            }
-        });
-    });
-}
-
-export function setActiveNavigation(selectedPokemonMoves){
-    // console.log('set navigation called!');
-    let navOptions = document.querySelectorAll('.nav-option');
-
-    navOptions.forEach(function (navLink) {
-        navLink.addEventListener('click', function (e) {
-            console.log("navLink wurde angeklickt:", navLink);
-            
-            // Entfernen Sie 'active' von allen Links
-            navOptions.forEach(function (innerNavLink) {
-                innerNavLink.classList.remove('active');
-            });
-            // Fügen Sie 'active' zum angeklickten Link hinzu
-            navLink.classList.add('active');
-                                 
-        });
-        updateMovesDisplay(selectedPokemonMoves);
-    });
-}
-
-export function updateMovesDisplay(selectedPokemonMoves) {
-    // Ausgewähltes Spiel abrufen
-    const selectedGame = document.querySelector('input[name="gameOption"]:checked').getAttribute('data-customValue');
-    
-    // Ausgewählte Lernmethode abrufen
-    const selectedLearnMethod = document.querySelector('.nav-option.active').getAttribute('data-customValue');
-
-    // Moves basierend auf den ausgewählten Optionen filtern
-    // console.log('Ist allPokemonMoves ein Array?', Array.isArray(allPokemonMoves));
-
-    const filteredMoves = selectedPokemonMoves.map(move => {
-        const gameIndex = move.moveVersionsGroupe.indexOf(selectedGame);
-        if (!Array.isArray(selectedPokemonMoves) || !selectedPokemonMoves.length) {
-            console.error("allPokemonMoves ist nicht korrekt befüllt.");
-            return; // Verlassen Sie die Funktion frühzeitig
-        }
-               
-        if (gameIndex !== -1 && move.moveLearnMethod[gameIndex] === selectedLearnMethod) {
-            return {
-            moveName: move.moveName,
-            movePower: move.movePower,
-            moveType: move.moveType,
-            moveDamageClass: move.moveDamageClass,
-            levelLearnedAt: move.levelLearnedAt[gameIndex],
-            moveLearnMethod: move.moveLearnMethod[gameIndex],  // Hier hinzugefügt
-        
-            };
-        }
-        return null;
-    }).filter(move => move !== null);
-    console.log(filteredMoves)
-    displayMovesForGame(filteredMoves);
 }
 

@@ -1,6 +1,6 @@
 import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter , capitalizeEachWord} from './utils.js';
-import { initModal, updateMovesDisplay } from './modal.js';
+import { initModal, applyFilters } from './modal.js';
 
 
 
@@ -59,7 +59,7 @@ export function generateEvolutionHTML(evolutionChain) {
 
         const segment = `
         <div class="container text-center">
-            <div class="row gx-5 p-0">
+            <div class="evolution-postion-container row gx-5 p-0">
                 <div class="col">
                     <div class="evolution-pokemon">
                         <div class="evolution-row">
@@ -74,7 +74,7 @@ export function generateEvolutionHTML(evolutionChain) {
                 </div>
                 <div class="col d-flex align-items-center justify-content-center flex-column">
                     <img src="/pokemon-wiki/img/arrow-right.svg" alt="evolution-arrow-right">
-                    <div><strong>Lvl ${nextPokemon.min_level}</strong></div>
+                    <div class="padding-mobile"><strong>Lvl ${nextPokemon.min_level}</strong></div>
                 </div>
                 <div class="col">
                     <div class="evolution-pokemon">
@@ -83,7 +83,7 @@ export function generateEvolutionHTML(evolutionChain) {
                                 <div class="evolution-img-container">
                                     <img class="poke-thumbnail" src="${nextPokemon.thumbnail}" alt="${nextPokemon.name} Thumbnail">
                                 </div>
-                                <p><strong>${capitalizeFirstLetter(nextPokemon.name)}</strong></p>
+                                <p class="padding-mobile"><strong>${capitalizeFirstLetter(nextPokemon.name)}</strong></p>
                             </div>
                         </div>
                     </div>
@@ -99,33 +99,53 @@ export function generateEvolutionHTML(evolutionChain) {
 }
 
 
-export function displayMovesForGame(filteredMoves) {
-    //console.log('displayMovesForGame wurde aufgerufen');
-
-    if (!Array.isArray(filteredMoves)) {
-        console.error('filteredMoves ist kein Array:', filteredMoves);
-        return; // Verlassen Sie die Funktion frühzeitig
-    }
-
+export function renderMoves(moves, currentLearnMethod) {
+    const tableMoves = document.getElementById('pokemon-moves');
+        
     // Hier sortieren Sie die Bewegungen basierend auf dem Level
-    filteredMoves.sort((a, b) => a.levelLearnedAt - b.levelLearnedAt);
-
-    const movesHTML = filteredMoves.map(move => {
+    moves.sort((a, b) => a.levelLearnedAt - b.levelLearnedAt);
+    
+    // Überprüfen Sie, ob die aktuelle Lernmethode eine der Methoden ist, 
+    // für die die Spalte "Level" nicht relevant ist
+    const movesHTML = moves.map(move => {
         return `
             <tr>
-                <th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>
-                <td class="align-middle text-center">${capitalizeEachWord(move.moveName)}</td>
-                <td class="align-middle text-center">${move.movePower ? move.movePower : '-'}</td>
-                <td class="align-middle text-center">${capitalizeEachWord(move.moveType)}</td>
-                <td class="align-middle text-center">${capitalizeEachWord(move.moveDamageClass)}</td>
+            ${["Tutor", "Egg", "Machine"].includes(currentLearnMethod) ? '' : `<th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>`}
+            <td class="align-middle text-center">${capitalizeEachWord(move.moveName)}</td>
+            <td class="align-middle text-center">${move.movePower ? move.movePower : '-'}</td>
+            <td class="align-middle text-center">${capitalizeEachWord(move.moveType)}</td>
+            <td class="align-middle text-center">${capitalizeEachWord(move.moveDamageClass)}</td>
             </tr>
         `;
     }).join('');
 
-    // Überprüfen Sie, ob das Element existiert, bevor Sie seinen innerHTML setzen
-    const tableMoves = document.getElementById('pokemon-moves');
     tableMoves.innerHTML = movesHTML;
 }
+
+export function updateTableHeader(currentLearnMethod) {
+    const tableHeader = document.getElementById('pokemon-moves-header');
+    if (["Tutor", "Egg", "Machine"].includes(currentLearnMethod)) {
+        tableHeader.innerHTML = `
+            <tr>
+                <th class="align-middle text-center">Move Name</th>
+                <th class="align-middle text-center">Power</th>
+                <th class="align-middle text-center">Type</th>
+                <th class="align-middle text-center">Damage Class</th>
+            </tr>
+        `;
+    } else {
+        tableHeader.innerHTML = `
+            <tr>
+                <th class="align-middle text-center">Level</th>
+                <th class="align-middle text-center">Move Name</th>
+                <th class="align-middle text-center">Power</th>
+                <th class="align-middle text-center">Type</th>
+                <th class="align-middle text-center">Damage Class</th>
+            </tr>
+        `;
+    }
+}
+
 
 
 

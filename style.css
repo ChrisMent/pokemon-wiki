@@ -418,6 +418,25 @@ hr {
     z-index: 10; /* Stellen Sie sicher, dass der Pfeil über anderen Elementen angezeigt wird */
   }
 
+  .evolution-postion-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .evolution-img-container {
+    margin: auto;
+  }
+
+  .text-align {
+    text-align: center;
+  }
+
+  .padding-mobile {
+    padding: 10px;
+  }
+
   /* Verstecken des horizontalen Scrollbalkens */
   .nav-wrapper::-webkit-scrollbar {
     display: none;

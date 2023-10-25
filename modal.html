@@ -257,7 +257,7 @@
                     </div>
                     <div class="tab-pane fade" id="evolution" role="tabpanel" aria-labelledby="evolution-tab">
                         <!-- Inhalt für den Tab "Evolution" -->
-                        <h5 class="fw-bold">Evolution Chain</h5>
+                        <h5 class="fw-bold text-align">Evolution Chain</h5>
                         <div id="evolutionContent">
                         </div>
                     </div>
@@ -344,7 +344,7 @@
                         </div>
                         <div class="table-responsive">
                             <table class="table table-borderless align-middle" style="font-size: 14px;">
-                                <thead>
+                                <thead id="pokemon-moves-header">
                                     <tr>
                                         <th class="align-middle text-center" scope="col">Level</th>
                                         <th class="align-middle text-center" scope="col">Move Name</th>
@@ -354,7 +354,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="pokemon-moves">
-                                    <tr>
+                                    <tr id="poke-moves-data">
                                         <th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>
                                         <td class="align-middle text-center">${move.moveName}</td>
                                         <td class="align-middle text-center">${move.movePower}</td>
