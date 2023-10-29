@@ -27,6 +27,8 @@ export async function getPokemonData() {
         
         const allData = jsonResponseAllPokemons.results;
 
+        console.log('Das ist: ', allData)
+
         // Durch alle Datensätze aus AllData mit der Gruppe: "results" durchiterieren um alle Pokemons zu bekommen
         for (let resultAllPokemons of allData) {
             let allMoves = [] 

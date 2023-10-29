@@ -4,18 +4,19 @@
 import { capitalizeFirstLetter } from './utils.js';
 
 const BASE_URL = 'https://pokeapi.co/api/v2/';
+const LIMIT = 150
 
-export let allPokemonData = [];
-export let allPokemonMoves = [];
+export let allPokemonData_v1 = [];
+export let allPokemonMoves_v1 = [];
 
-export async function fetchAllPokemonData() {
+export async function getPokemonData1() {
     try {
-        const response = await fetch(`${BASE_URL}pokemon?limit=151`);
+        const response = await fetch(`${BASE_URL}pokemon?limit=${LIMIT}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        allPokemonData = data.results.map(pokemon => {
+        allPokemonData_v1 = data.results.map(pokemon => {
             return {
                 name: pokemon.name,
                 url: pokemon.url
@@ -24,6 +25,8 @@ export async function fetchAllPokemonData() {
     } catch (error) {
         console.error("Error fetching all Pokemon data:", error);
     }
+
+    console.log(allPokemonData_v1)
 }
 
 export async function fetchPokemonDetails(pokemonName) {
@@ -34,6 +37,7 @@ export async function fetchPokemonDetails(pokemonName) {
         }
         const data = await response.json();
         return {
+            id: data.id,
             name: capitalizeFirstLetter(data.name),
             height: data.height,
             weight: data.weight,
