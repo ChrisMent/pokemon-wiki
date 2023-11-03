@@ -5,13 +5,14 @@ import { initModal, applyFilters } from './modal.js';
 
 
 
+
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
 
 // --> Für jedes dieser Objekte wird die renderOverview-Funktion aufgerufen
 // --> Parameter allPokemonData ist das Array aus api.js
 
 export function renderAllPokemon(allPokemonData) {
-    
+    //console.log('render.js')
     const pokemonContainer = document.getElementById("pokemon-container");
     pokemonContainer.innerHTML = '';  // Leert den Container
 
@@ -34,14 +35,14 @@ export function renderOverview(pokemonData) {
     <div class="col-6">
         <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}">
             <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
-            <h3 class="pokemon-name"><a id="open-modal"class="pokemon-link" href="${pokemonData.name}">${capitalizeFirstLetter(pokemonData.name)}</a></h3>
+            <h3 class="pokemon-name"><a id="open-modal"class="pokemon-link" href="${pokemonData.name}">${capitalizeEachWord(pokemonData.name)}</a></h3>
             <div class="overview-columns">
                 <div class="overview-badges">
-                    <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${pokemonData.types[0]}</span>
-                    ${pokemonData.types[1] ? `<span class="overview-badge badge rounded-pill" style="background-color: ${lightenColor(bgColor, 10)}">${pokemonData.types[1]}</span>` : ''}
+                    <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[0])}</span>
+                    ${pokemonData.types[1] ? `<span class="overview-badge badge rounded-pill" style="background-color: ${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[1])}</span>` : ''}
                 </div>
                 <div class="overview-img-container">
-                    <img class="overview-img" src="${pokemonData.image}" alt="Pokemon Monster">
+                    <img class="overview-img" src="${pokemonData.sprites}" alt="Pokemon Monster Image">
                 </div>
             </div>
         </div>
