@@ -60,6 +60,7 @@ body {
 .overview-img {
   width: 98px;
   height: 88px;
+  position: relative;
   z-index: 100 !important;
 }
 
@@ -345,11 +346,16 @@ hr {
   color: #fff;
 }
 
+.load-more {
+  display: flex;
+  justify-content: center;
+}
+
 /*** Responsive Design ****/
 
 @media (min-width: 500px) {
   .container {
-    max-width: 500px !important;
+    /** max-width: 500px !important; **/
   }
 }
 

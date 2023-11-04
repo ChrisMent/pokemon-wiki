@@ -27,7 +27,19 @@ export function getBackgroundColor(type) {
       'fire': '#FB6C6C',
       'water': '#77BEFE',
       'bug': '#B2746C',
-      'normal': '#7D528D'
+      'normal': '#7D528D',
+      'poison' :'#BE508F',
+      'electric' :'#383838',
+      'ground' :'#7E571E',
+      'fairy' :'#2F4D6F',
+      'fighting' :'#DD955A',
+      'psychic' :'#779758',
+      'rock' :'#A4A8B4',
+      'ghost' :'#3D657E',
+      'ice' :'#C3DFF5',
+      'dragon' :'#D7BC91',
+      'dark' :'#554F51',
+      'steel' :'#8C9193',
     };
     return colors[type] || '#d1d5d4';  // Standardfarbe ist Grau, falls der Typ nicht gefunden wird
   }

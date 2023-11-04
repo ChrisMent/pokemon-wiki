@@ -2,10 +2,6 @@ import { lightenColor, getBackgroundColor } from './utils.js';
 import { capitalizeFirstLetter , capitalizeEachWord} from './utils.js';
 import { initModal, applyFilters } from './modal.js';
 
-
-
-
-
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
 
 // --> Für jedes dieser Objekte wird die renderOverview-Funktion aufgerufen
@@ -32,7 +28,7 @@ export function renderOverview(pokemonData) {
 
     // Fügen des HTML-Inhalts zum Container hinzu
     pokemonContainer.innerHTML += `
-    <div class="col-6">
+    <div class="col-6 col-lg-3">
         <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}">
             <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
             <h3 class="pokemon-name"><a id="open-modal"class="pokemon-link" href="${pokemonData.name}">${capitalizeEachWord(pokemonData.name)}</a></h3>

@@ -1,29 +1,65 @@
+import { renderOverview } from './render.js';
+
 export let allPokemonMoves = [];
 export let allPokemonData = [];
 
 const BASE_URL = 'https://pokeapi.co/api/v2/';
-const LIMIT = 1
+let limit = 20;
+let offset = 0;
 
+// Funktion zum Laden mehrerer Pokémon
+export async function loadMorePokemons() {
+    offset += limit; // Erhöhe den Offset um das Limit, um die nächsten Pokémon zu laden
+    await fetchPokemonsBaseData();
+    // Hier würden Sie die Funktion aufrufen, die die UI aktualisiert, z.B.:
+    updateUIWithNewPokemons(allPokemonData.slice(-limit)); // Aktualisiere die UI mit den letzten 20 geladenen Pokémon
+}
+
+// Funktion zum Aktualisieren der UI mit neuen Pokémon-Daten
+function updateUIWithNewPokemons(newPokemonData) {
+    const pokemonContainer = document.getElementById('pokemon-container');
+    if (!pokemonContainer) {
+        console.error('Das Element mit der ID "pokemon-container" wurde nicht gefunden.');
+        return;
+    }
+    newPokemonData.forEach(pokemon => {
+        renderOverview(pokemon); // Verwenden Sie die bestehende Funktion, um die Karten zu rendern
+    });
+}
+
+
+// Funktion zum Erstellen eines neuen Pokémon-Elements
+function createPokemonElement(pokemon) {
+    const pokemonElement = document.createElement('div');
+    pokemonElement.className = 'pokemon'; // Fügen Sie hier Ihre eigenen Klassen hinzu
+    pokemonElement.innerHTML = `
+        <h3>${pokemon.name}</h3>
+        <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+        <!-- Weitere Pokémon-Informationen hier einfügen -->
+    `;
+    return pokemonElement;
+}
 export async function fetchPokemonsBaseData() {
     try {
-        const response = await fetch(`${BASE_URL}pokemon?limit=${LIMIT}`);
+        const response = await fetch(`${BASE_URL}pokemon?limit=${limit}&offset=${offset}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        allPokemonData = data.results.map(pokemon => {
+        const newPokemonData = data.results.map(pokemon => {
             return {
                 name: pokemon.name,
                 url: pokemon.url
             };
         });
-        
+        allPokemonData = [...allPokemonData, ...newPokemonData]; // Hinzufügen neuer Daten zum bestehenden Array
     } catch (error) {
         console.error("Error fetching pokemon base data:", error);
     }
-    await fetchPokemonsDetails()
-    return allPokemonData;
+    await fetchPokemonsDetails(); // Sie müssen sicherstellen, dass dies korrekt mit den neuen Daten umgeht
+    return allPokemonData; // Dies ist möglicherweise nicht notwendig, da allPokemonData bereits aktualisiert wurde
 }
+
 
 
 export async function fetchPokemonsDetails() {
@@ -295,17 +331,6 @@ export async function getEvolutionDataForPokemon(pokemonName) {
         console.error("There was a problem with the fetch operation:", error);
     }}
 
-    fetchPokemonsBaseData();
 
-async function displayData() {
-    await fetchPokemonsBaseData();
-    await fetchPokemonsDetails();
-    console.log('Zugriff auf allPokemonData: ', allPokemonData);
-    //allPokemonData.forEach(pokemon => {
-    //    console.log(`Stats für ${pokemon.name}: `, pokemon.stats);
-    //}
-    //);
-}
 
-displayData();
 
