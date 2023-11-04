@@ -23,11 +23,23 @@ export function lightenColor(color, percent) {
 // Funktion als Objekt verwenden, die die Hintergrundfarbe für einen bestimmten Pokemontyp zurückgibt
 export function getBackgroundColor(type) {
     const colors = {
-      'Grass': '#48d0b0',
-      'Fire': '#FB6C6C',
-      'Water': '#77BEFE',
-      'Bug': '#B2746C',
-      'Normal': '#7D528D'
+      'grass': '#48d0b0',
+      'fire': '#FB6C6C',
+      'water': '#77BEFE',
+      'bug': '#B2746C',
+      'normal': '#7D528D',
+      'poison' :'#BE508F',
+      'electric' :'#383838',
+      'ground' :'#7E571E',
+      'fairy' :'#2F4D6F',
+      'fighting' :'#DD955A',
+      'psychic' :'#779758',
+      'rock' :'#A4A8B4',
+      'ghost' :'#3D657E',
+      'ice' :'#C3DFF5',
+      'dragon' :'#D7BC91',
+      'dark' :'#554F51',
+      'steel' :'#8C9193',
     };
     return colors[type] || '#d1d5d4';  // Standardfarbe ist Grau, falls der Typ nicht gefunden wird
   }

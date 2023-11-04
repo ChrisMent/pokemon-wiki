@@ -1,195 +1,257 @@
-import { capitalizeFirstLetter , formatNumber} from './utils.js';
+import { renderOverview } from './render.js';
 
-// Test API
+export let allPokemonMoves = [];
+export let allPokemonData = [];
 
-// *** API - Abruf für die Übersichtsseite *** //
+const BASE_URL = 'https://pokeapi.co/api/v2/';
+let limit = 20;
+let offset = 0;
 
-// Aufbereitete Daten aus Fetch - Funktionen im Array gespeichert
-export const allPokemonData = []; 
-export const allPokemonMoves = []; // Dieses Array wird die Bewegungsdaten für das aktuelle Pokémon speichern
+// Funktion zum Laden mehrerer Pokémon
+export async function loadMorePokemons() {
+    offset += limit; // Erhöhe den Offset um das Limit, um die nächsten Pokémon zu laden
+    await fetchPokemonsBaseData();
+    // Hier würden Sie die Funktion aufrufen, die die UI aktualisiert, z.B.:
+    updateUIWithNewPokemons(allPokemonData.slice(-limit)); // Aktualisiere die UI mit den letzten 20 geladenen Pokémon
+}
 
-export async function getPokemonData() {
-    // API URL für den Start
-    let url = 'https://pokeapi.co/api/v2/pokemon/';
-    // Versuchen einen Response von der Schnittstelle zu bekommen
-    try {
-        // Asynchrones Abrufen der URL via Fetch
-        const responseAllPokemons = await fetch(url); // https://pokeapi.co/api/v2/pokemon/
-        
-        // Wenn der Respone nicht "OK" ist dann gebe einen Fehler aus.
-        if (!responseAllPokemons.ok) {
-            throw new Error(`HTTP error! status: ${responseAllPokemons.status}`);
-        }
-
-        // Umwandeln des Response in ein JSON
-        let jsonResponseAllPokemons = await responseAllPokemons.json(); 
-        // Startpunkt zum Abrufen der Datensätze aus dem JSON: resulls ist die Ebene mit den Daten zu "Name" und der "Detail-URL"
-        
-        const allData = jsonResponseAllPokemons.results;
-
-        console.log('Das ist: ', allData)
-
-        // Durch alle Datensätze aus AllData mit der Gruppe: "results" durchiterieren um alle Pokemons zu bekommen
-        for (let resultAllPokemons of allData) {
-            let allMoves = [] 
-            // Die URL aus AllData auslesen results[x].url z.B.: https://pokeapi.co/api/v2/pokemon/1/
-            const pokemonResponse = await fetch(resultAllPokemons.url);
-            
-            if (!pokemonResponse.ok) {
-                throw new Error(`HTTP error! status: ${pokemonResponse.status}`);
-            }
-
-            //! Ab hier Zugriff aus alle Daten aus https://pokeapi.co/api/v2/pokemon/x/
-
-            // Umwandeln des Response in ein JSON
-            const pokemonJson = await pokemonResponse.json();
-            
-            //** Datenpunkte aus pokemonJson START */ 
-            const id = pokemonJson.id;
-            const name = pokemonJson.name;
-            const types = pokemonJson.types.map(typeObj => capitalizeFirstLetter(typeObj.type.name));
-            const image = pokemonJson.sprites.other.home.front_default;
-            const height = pokemonJson.height / 10
-            const heightInInch = height * 3.937
-            const weightInLbs = pokemonJson.weight * 0.2204623
-            const weightInKg = weightInLbs * 0.45359237
-            const abilities = pokemonJson.abilities.map(typeObj => capitalizeFirstLetter(typeObj.ability.name))
-            // ... weitere Schlüssel-Wert-Paare hier hinzufügen
-            const baseStats =  {
-                hp: pokemonJson.stats[0].base_stat,
-                attack: pokemonJson.stats[1].base_stat,
-                defense: pokemonJson.stats[2].base_stat,
-                specialAttack: pokemonJson.stats[3].base_stat,
-                specialDefense: pokemonJson.stats[4].base_stat,
-                speed: pokemonJson.stats[5].base_stat,
-                // ... weitere Schlüssel-Wert-Paare hier hinzufügen
-            };
-         
-            // Berechnungen
-            baseStats.total = baseStats.hp + baseStats.attack + baseStats.defense + baseStats.specialAttack + baseStats.specialDefense + baseStats.speed;
-            
-            let totalStatProgress = baseStats.total / 6
-
-            
-            //** Datenpunkte aus pokemonJson ENDE */ 
-
-
-            // Startpunkt zum Abrufen der Datensätze aus dem JSON: moves ist die Ebene die durchiteriert werden  muss um dan die "Move - Detail-URL" zu kommen
-
-            const allMovesData = pokemonJson.moves
-
-            // Durch alle Datensätze aus AllData mit der Gruppe: "results" durchiterieren um alle Pokemons zu bekommen
-
-               for (let resultMoveData of allMovesData) {
-                
-                // Extrahieren der URL für die Moves für jedes Pokemon damit die Daten aus den MoveDetails abgerufen werden können. 
-                const moveDetailUrl = resultMoveData.move.url; // Move url https://pokeapi.co/api/v2/move/x/
-                
-                // Neuer Fetch für Move - Datails
-                const moveDetailsResponse = await fetch(moveDetailUrl);
-
-                if (!moveDetailsResponse.ok) {
-                    throw new Error(`HTTP error! status: ${moveDetailsResponse.status}`);
-                }
-
-                
-                const moveDetailsAll = await moveDetailsResponse.json();
-                // Holen von moveName
-                const moveName = resultMoveData.move.name;
-                // Zugriff auf alle Werte aus den Move Details
-                const movePower = moveDetailsAll.power;
-                const moveType = moveDetailsAll.type.name;
-                const moveDamageClass = moveDetailsAll.damage_class.name;
-                const moveData = {
-                    pokemonName: name,
-                    moveName: moveName,
-                    movePower: movePower,
-                    moveType: moveType,
-                    moveDamageClass: moveDamageClass,
-                    moveLearnMethod: [],  // Array für moveType
-                    moveVersionsGroupe: [],  // Array für moveVersion
-                    levelLearnedAt: [],  // Array für level_learned_at
-                }
-                // Hinzufügen der Bewegungsdaten zum allMoves-Array
-                allPokemonMoves.push(moveData);
-                
-
-                // Hier füllen wir die moveLearnMethod und moveVersionsGroupe Arrays für das aktuelle Move
-                for (let type of resultMoveData.version_group_details) {
-                    const moveType = capitalizeFirstLetter(type.move_learn_method.name);
-                    const moveVersion = capitalizeFirstLetter(type.version_group.name);
-                    const levelLearned = type.level_learned_at;  // Holen Sie sich den Wert von level_learned_at
-
-                    moveData.moveLearnMethod.push(moveType);  // Fügt moveType zum Array hinzu
-                    moveData.moveVersionsGroupe.push(moveVersion);  // Fügt moveVersion zum Array hinzu
-                    moveData.levelLearnedAt.push(levelLearned);  // Fügt level_learned_at zum Array hinzu
-                }
-                
-                
-
-            }
-
-            //console.log('Das sind die Move-Names für', resultAllPokemons.name, ':', allPokemonMoves);
-           
-            // Erstellung eine Objektes mit mehreren Variabeln
-            const pokemonData = {
-                id: formatNumber(id),
-                name: name,
-                types: types,
-                image: image,
-                height: height.toFixed(2),
-                heightInInch: heightInInch.toFixed(2),
-                weightInLbs: weightInLbs.toFixed(2),
-                weightInKg: weightInKg.toFixed(2),
-                abilities: abilities,
-                baseStats: baseStats, // Objekt kombinieren, mit dem Spread-Operator (...baseStats) oder als vollständiges Objekt mit baseStats: baseStats
-                totalStatProgress: totalStatProgress,
-                allPokemonMoves: allPokemonMoves
-                                
-            };
-
-            // console.log('Das sind alle Pokemondaten: ',pokemonData)
-
-            // Zusätzlicher Fetch-Aufruf für die 'species'-URL des Pokémon
-            // Daten aus: https://pokeapi.co/api/v2/pokemon-species/{id}/
-
-            const speciesResponse = await fetch(pokemonJson.species.url);
-            if (!speciesResponse.ok) {
-                throw new Error(`HTTP error! status: ${speciesResponse.status}`);
-            }
-            const speciesJson = await speciesResponse.json();
-
-            // Extrahieren des 'genus' aus dem 'species'-JSON
-            // Hier wird davon ausgegangen, dass der 'genus' immer in Englisch (en) vorliegt.
-            const genusWithPokemon = speciesJson.genera.find(g => g.language.name === 'en').genus;
-            const genusWithoutPokemon = genusWithPokemon.replace(" Pokémon", "");
-            const genderRateFemale = Math.floor(speciesJson.gender_rate / 8 * 100)
-            const genderRateMale = 100 - genderRateFemale
-            const eggGroups = speciesJson.egg_groups.map(typeObj => capitalizeFirstLetter(typeObj.name))
-            const captureRate = speciesJson.capture_rate
-
-            // Hinzufügen des 'genus' zum 'pokemonData'-Objekt
-            pokemonData.genus = genusWithoutPokemon;
-            pokemonData.genderRateFemale = genderRateFemale
-            pokemonData.genderRateMale = genderRateMale
-            pokemonData.eggGroups = eggGroups
-            pokemonData.captureRate = captureRate
-
-                       
-            // Speichern der Daten in einem Array.
-
-            // Mit allPokemonData.push(pokemonData) werden die Daten zu einem Array hinzugefügt, aber dieses Array ist nur innerhalb der Funktion sichtbar. Wenn die gesammelten Daten in einem anderen Teil Ihres Programms verwenden werden sollen, müssen diese mit return zurückgeben.
-            allPokemonData.push(pokemonData);
-        }
-  
-        // Der return-Befehl gibt das Array allPokemonData zurück, das alle gesammelten Pokémon-Daten enthält. Damit diese die Funktion an anderer Stelle im Code genutzt werden kann z.B. die Daten im DOM darzustellen.
-        return allPokemonData;
-
-
-  
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error);
+// Funktion zum Aktualisieren der UI mit neuen Pokémon-Daten
+function updateUIWithNewPokemons(newPokemonData) {
+    const pokemonContainer = document.getElementById('pokemon-container');
+    if (!pokemonContainer) {
+        console.error('Das Element mit der ID "pokemon-container" wurde nicht gefunden.');
+        return;
     }
+    newPokemonData.forEach(pokemon => {
+        renderOverview(pokemon); // Verwenden Sie die bestehende Funktion, um die Karten zu rendern
+    });
+}
+
+
+// Funktion zum Erstellen eines neuen Pokémon-Elements
+function createPokemonElement(pokemon) {
+    const pokemonElement = document.createElement('div');
+    pokemonElement.className = 'pokemon'; // Fügen Sie hier Ihre eigenen Klassen hinzu
+    pokemonElement.innerHTML = `
+        <h3>${pokemon.name}</h3>
+        <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+        <!-- Weitere Pokémon-Informationen hier einfügen -->
+    `;
+    return pokemonElement;
+}
+export async function fetchPokemonsBaseData() {
+    try {
+        const response = await fetch(`${BASE_URL}pokemon?limit=${limit}&offset=${offset}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const newPokemonData = data.results.map(pokemon => {
+            return {
+                name: pokemon.name,
+                url: pokemon.url
+            };
+        });
+        allPokemonData = [...allPokemonData, ...newPokemonData]; // Hinzufügen neuer Daten zum bestehenden Array
+    } catch (error) {
+        console.error("Error fetching pokemon base data:", error);
+    }
+    await fetchPokemonsDetails(); // Sie müssen sicherstellen, dass dies korrekt mit den neuen Daten umgeht
+    return allPokemonData; // Dies ist möglicherweise nicht notwendig, da allPokemonData bereits aktualisiert wurde
+}
+
+
+
+export async function fetchPokemonsDetails() {
+    for (let i = 0; i < allPokemonData.length; i++) {
+        try {
+            // Zugriff auf die Daten der URL: https://pokeapi.co/api/v2/pokemon/[i]/
+            const response = await fetch(allPokemonData[i].url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            // Stats Data Pokemon
+            const hpStat = data.stats.find(stat => stat.stat.name === "hp").base_stat;
+            const attackStat = data.stats.find(stat => stat.stat.name === "attack").base_stat;
+            const defenseStat = data.stats.find(stat => stat.stat.name === "defense").base_stat;
+            const specialAttackStat = data.stats.find(stat => stat.stat.name === "special-attack").base_stat;
+            const specialDefenseStat = data.stats.find(stat => stat.stat.name === "special-defense").base_stat;
+            const speedStat = data.stats.find(stat => stat.stat.name === "speed").base_stat;
+            
+            // Caclulation with Stats
+            const totalStats = hpStat + attackStat + defenseStat + specialAttackStat + specialDefenseStat + speedStat;
+            const totalStatProgress = totalStats / 6;
+
+            // Caclulation with height & weight
+            const heightInInch = parseFloat((data.height * 3.937 / 10).toFixed(2));
+            const weightInLbs = parseFloat((data.weight * 0.2204623).toFixed(2))
+            const weightInKg = parseFloat((weightInLbs * 0.45359237).toFixed(2))
+            
+            // Urls for further requests
+            const speciesUrl = data.species.url
+
+            // Serveral pokemon data
+            const types = data.types.map(type => type.type.name)
+            const abilities = data.abilities.map(ability => ability.ability.name)
+
+            const movesBaseData = data.moves.map(move => {
+                // Extrahiere die grundlegenden Bewegungsdaten
+                const baseData = {
+                    name: move.move.name,
+                    url: move.move.url
+                };
+            
+                // Iteriere durch jedes version_group_detail und extrahiere die zusätzlichen Informationen
+                const versionGroupDetails = move.version_group_details.map(detail => {
+                    return {
+                        levelLearnedAt: detail.level_learned_at,
+                        moveLearnMethodName: detail.move_learn_method.name,
+                        versionGroupName: detail.version_group.name,
+                    };
+                });
+            
+                // Füge die versionGroupDetails zum baseData-Objekt hinzu
+                baseData.versionGroupDetails = versionGroupDetails;
+            
+                return baseData;
+            });
+
+            // Ausgabe der Werte innerhalt einer Konstanten!
+            const pokemonsDetailsData = {
+                id: data.id,
+                name: data.name,
+                height: data.height,
+                heightInInch: heightInInch,
+                weight: data.weight,
+                weightInLbs: weightInLbs,
+                weightInKg: weightInKg,
+                types: types,
+                speciesUrl: speciesUrl,
+                abilities: abilities,
+                baseStats: {
+                    hp: hpStat,
+                    attack: attackStat,
+                    defense: defenseStat,
+                    specialAttack: specialAttackStat,
+                    specialDefense: specialDefenseStat,
+                    speed: speedStat,
+                    total: totalStats,
+                    totalProgress: totalStatProgress
+                },
+                sprites: data.sprites.other.home.front_default,
+                //movesBaseData: movesBaseData
+            };
+            // Daten zum Array hinzufügen
+            allPokemonData[i] = { ...allPokemonData[i], ...pokemonsDetailsData }; 
+
+        // Temporär hinzufügen von allPokemonData zu allPokemonData[i], um es in fetchPokemonsMovesDetails zu verwenden
+        allPokemonData[i].tempMovesBaseData = movesBaseData;
+
+
+        } catch (error) {
+            console.error("Error fetching pokemon details data:", error);
+        }
+    }
+    await fetchPokemonsSpecies();
+    return allPokemonData;
+}
+
+export async function fetchPokemonsSpecies(){
+for (let i = 0; i < allPokemonData.length; i++) {
+    try {
+        
+        // Zugriff auf die Daten https://pokeapi.co/api/v2/pokemon-species/[i]/
+        // Diese sind zu finden unter [i] ---> data.species.url der Funktion fetchPokemonsDetails()
+
+        const speciesUrl = allPokemonData[i].speciesUrl;
+        const response = await fetch(speciesUrl);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);       
+        }
+
+        const data = await response.json();
+        
+        // Species Data Pokemon
+        const genusWithPokemon = data.genera.find(g => g.language.name === 'en').genus;
+        const genusWithoutPokemon = genusWithPokemon.replace(" Pokémon", "");
+        const captureRate = data.capture_rate
+        const genderRateFemale = Math.floor(data.gender_rate / 8 * 100)
+        const genderRateMale = 100 - genderRateFemale
+        const eggGroups = data.egg_groups.map(typeObj => typeObj.name)
+        
+        // Daten zum Array hinzufügen
+        const pokemonSpeciesData = {
+            captureRate: captureRate,
+            genderRateFemale: genderRateFemale,
+            genderRateMale: genderRateMale,
+            eggGroups: eggGroups,
+            genusWithoutPokemon: genusWithoutPokemon
+        }
+        
+        allPokemonData[i] = { ...allPokemonData[i], ...pokemonSpeciesData }; 
+
+
+    } catch (error) {
+            console.error("Error fetching species data:", error);
+        }
+    }
+    await fetchPokemonsMovesDetails();
+    return allPokemonData;
+}
+
+export async function fetchPokemonsMovesDetails() {
+    for (let i = 0; i < allPokemonData.length; i++) {
+        const pokemonName = allPokemonData[i].name; // Name des Pokémon
+        
+        // Initialisiere movesDetails für das aktuelle Pokémon
+        allPokemonData[i].movesDetails = [];
+
+        for (const moveBaseData of allPokemonData[i].tempMovesBaseData) {
+            try {
+                const response = await fetch(moveBaseData.url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const moveDetails = await response.json();
+
+                const moveName = moveBaseData.name
+                const moveUrl = moveBaseData.url
+                const moveType = moveDetails.type.name
+                const movePower = moveDetails.power
+                const moveDamageClass = moveDetails.damage_class.name
+                const versionGroupDetails = moveBaseData.versionGroupDetails
+
+                // Verarbeite die Bewegungsdetails
+                const detailedMoveData = {
+                    pokemonName: pokemonName,
+                    moveName: moveName,
+                    moveUrl: moveUrl,
+                    moveType: moveType,
+                    movePower: movePower,
+                    moveDamageClass: moveDamageClass,
+                    versionGroupDetails: versionGroupDetails
+
+                    // ... füge hier weitere Details hinzu
+                };
+
+                // Hinzufügen der Bewegungsdetails, wenn nicht bereits vorhanden
+                if (!allPokemonData[i].movesDetails.find(m => m.moveName === detailedMoveData.moveName)) {
+                    allPokemonData[i].movesDetails.push(detailedMoveData);
+                }
+
+                
+            } catch (error) {
+                console.error("Error fetching move details for", moveBaseData.name, ":", error);
+            }
+        }
+        delete allPokemonData[i].tempMovesBaseData;
+        return allPokemonData;
+    }
+
 }
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
@@ -269,5 +331,6 @@ export async function getEvolutionDataForPokemon(pokemonName) {
         console.error("There was a problem with the fetch operation:", error);
     }}
 
-    // console.log('So sieht die erste Zeile von pokemonAllmoves aus', allPokemonMoves)
+
+
 

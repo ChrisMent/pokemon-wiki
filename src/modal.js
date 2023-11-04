@@ -263,7 +263,7 @@ function replaceValues(modalContent, pokemonData) {
     modalContent = modalContent.replace(/{{specialAttack}}/g, pokemonData.baseStats.specialAttack);
     modalContent = modalContent.replace(/{{specialDefense}}/g, pokemonData.baseStats.specialDefense);
     modalContent = modalContent.replace(/{{speed}}/g, pokemonData.baseStats.speed);
-    modalContent = modalContent.replace(/{{totalProgress}}/g, pokemonData.totalStatProgress);
+    modalContent = modalContent.replace(/{{totalProgress}}/g, pokemonData.totalStatProgress); // pokemonData.baseStats.totalStatProgress
        
     return modalContent;
 }
