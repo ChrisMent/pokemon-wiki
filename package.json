@@ -1,7 +1,6 @@
 {
   "name": "pokemon-wiki",
   "version": "1.0.0",
-  "description": "",
   "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,7 +12,9 @@
   "devDependencies": {
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "description": ""
 }
-
-

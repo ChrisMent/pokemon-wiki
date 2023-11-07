@@ -44,31 +44,6 @@ export function getBackgroundColor(type) {
     return colors[type] || '#d1d5d4';  // Standardfarbe ist Grau, falls der Typ nicht gefunden wird
   }
 
-  // Dropdown-Menu Modal Pokemons
-
-  export function toggleDropdown() {
-    const dropdownMenu = document.getElementById('gameOptions');
-    if (dropdownMenu.classList.contains('show')) {
-        dropdownMenu.classList.remove('show');
-    } else {
-        // Überprüfen Sie den aktuellen Wert des ausgewählten Radiobuttons
-        const selectedRadio = document.querySelector('input[name="gameOption"]:checked');
-        const selectedOptionSpan = document.getElementById('selectedOption');
-        selectedOptionSpan.textContent = selectedRadio.value;
-        dropdownMenu.classList.add('show');
-    }
-}
-
-
-  export function updateSelectedOption(radioInput) {
-    const selectedOptionSpan = document.getElementById('selectedOption');
-    selectedOptionSpan.textContent = radioInput.value;
-
-    // Dropdown-Menü schließen
-    const dropdownMenu = document.getElementById('gameOptions');
-    dropdownMenu.classList.remove('show');
-}
-
 // Wandelt zahlen um #001. Fügt einer Zeichenkette hinzu, die benötigt werden, um eine bestimmte Länge zu erreichen. Hier 3 Stellen
 export function formatNumber(number) {
   return String(number).padStart(3, '0');

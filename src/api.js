@@ -1,6 +1,5 @@
 import { renderOverview } from './render.js';
 
-export let allPokemonMoves = [];
 export let allPokemonData = [];
 
 const BASE_URL = 'https://pokeapi.co/api/v2/';
@@ -204,6 +203,12 @@ for (let i = 0; i < allPokemonData.length; i++) {
 
 export async function fetchPokemonsMovesDetails() {
     for (let i = 0; i < allPokemonData.length; i++) {
+        
+        if (!Array.isArray(allPokemonData[i].tempMovesBaseData)) {
+            console.error(`tempMovesBaseData for ${allPokemonData[i].name} is not iterable`);
+            continue; // Überspringe das aktuelle Pokémon und fahre mit dem nächsten fort
+        }
+        
         const pokemonName = allPokemonData[i].name; // Name des Pokémon
         
         // Initialisiere movesDetails für das aktuelle Pokémon
@@ -234,7 +239,6 @@ export async function fetchPokemonsMovesDetails() {
                     movePower: movePower,
                     moveDamageClass: moveDamageClass,
                     versionGroupDetails: versionGroupDetails
-
                     // ... füge hier weitere Details hinzu
                 };
 
@@ -242,17 +246,16 @@ export async function fetchPokemonsMovesDetails() {
                 if (!allPokemonData[i].movesDetails.find(m => m.moveName === detailedMoveData.moveName)) {
                     allPokemonData[i].movesDetails.push(detailedMoveData);
                 }
-
                 
             } catch (error) {
                 console.error("Error fetching move details for", moveBaseData.name, ":", error);
             }
         }
-        delete allPokemonData[i].tempMovesBaseData;
-        return allPokemonData;
+        delete allPokemonData[i].tempMovesBaseData; // Bereinigen
     }
-
+    return allPokemonData; // Rückgabe nach Verarbeitung aller Pokémon
 }
+
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
 async function getPokemonThumbnail(pokemonName) {
