@@ -29,9 +29,10 @@ export function renderOverview(pokemonData) {
     // Fügen des HTML-Inhalts zum Container hinzu
     pokemonContainer.innerHTML += `
     <div class="col-6 col-lg-3">
-        <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}">
+    <a href="${pokemonData.name}" class="pokemon-link" style="text-decoration: none; color: inherit;">
+        <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}; cursor: pointer;">
             <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
-            <h3 class="pokemon-name"><a id="open-modal"class="pokemon-link" href="${pokemonData.name}">${capitalizeEachWord(pokemonData.name)}</a></h3>
+            <h3 class="pokemon-name">${capitalizeEachWord(pokemonData.name)}</h3>
             <div class="overview-columns">
                 <div class="overview-badges">
                     <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[0])}</span>
@@ -42,7 +43,9 @@ export function renderOverview(pokemonData) {
                 </div>
             </div>
         </div>
-    </div>
+    </a>
+</div>
+
     `;
 }
 
@@ -107,7 +110,7 @@ export function renderMoves(moves, currentLearnMethod) {
     const movesHTML = moves.map(move => {
         return `
             <tr>
-            ${["Tutor", "Egg", "Machine"].includes(currentLearnMethod) ? '' : `<th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>`}
+            ${["tutor", "egg", "machine"].includes(currentLearnMethod) ? '' : `<th class="align-middle text-center" scope="row">${move.levelLearnedAt}</th>`}
             <td class="align-middle text-center">${capitalizeEachWord(move.moveName)}</td>
             <td class="align-middle text-center">${move.movePower ? move.movePower : '-'}</td>
             <td class="align-middle text-center">${capitalizeEachWord(move.moveType)}</td>
@@ -121,7 +124,7 @@ export function renderMoves(moves, currentLearnMethod) {
 
 export function updateTableHeader(currentLearnMethod) {
     const tableHeader = document.getElementById('pokemon-moves-header');
-    if (["Tutor", "Egg", "Machine"].includes(currentLearnMethod)) {
+    if (["tutor", "egg", "machine"].includes(currentLearnMethod)) {
         tableHeader.innerHTML = `
             <tr>
                 <th class="align-middle text-center">Move Name</th>

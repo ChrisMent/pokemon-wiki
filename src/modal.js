@@ -1,134 +1,130 @@
 // modal.js  
 
 // Importieren Sie benötigte Module und Funktionen
-import { allPokemonData, allPokemonMoves, getEvolutionDataForPokemon } from './api.js';
+import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
 import { generateEvolutionHTML, renderMoves, updateTableHeader  } from './render.js';
-import { lightenColor, getBackgroundColor } from './utils.js';
-import { capitalizeFirstLetter } from './utils.js';
+import { lightenColor, getBackgroundColor, formatNumber } from './utils.js';
+import { capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
 
-let selectedPokemonMoves = [];  // Globale Definition
+// Variable, um den Status des Modals zu verfolgen
+let isModalOpen = false;
+
+// Event-Handler für Klicks außerhalb des Modals
+function handleOutsideClick(event) {
+    const modal = document.getElementById('pokemonModal');
+    if (event.target === modal) {
+        closeTheModal();
+    }
+}
+
+// Event-Handler, um das Modal zu schließen
+function closeTheModal() {
+    const modal = document.getElementById('pokemonModal');
+    modal.style.display = "none";
+    isModalOpen = false;
+}
 
 // Hauptfunktion zum Initialisieren des Modals
+
 export async function initModal() {
-    // Zugriff auf das Modal-Element
-    const modal = document.getElementById('pokemonModal');
+    const pokemonListContainer = document.getElementById('overview-container');
 
+    pokemonListContainer.addEventListener('click', async function(e) {
+        const link = e.target.closest('.pokemon-link');
+        if (!link) return;
 
-    // Zugriff auf alle Pokémon-Links
-    const pokemonLinks = document.querySelectorAll('.pokemon-link');
-    
-    // Fügt jedem Pokémon-Link einen EventListener hinzu
-    pokemonLinks.forEach(link => {
-        link.addEventListener('click', async function(e) {
-            // Verhindert das Standardverhalten des Links
-            e.preventDefault();
-            e.stopPropagation();
-            // console.log('Pokemon link clicked!');
-            
-            // Extrahiert den Namen des angeklickten Pokémon aus dem href-Attribut
-            const pokemonName = e.currentTarget.getAttribute('href');
-            
-            // Sucht nach den Daten des ausgewählten Pokémon im allPokemonData Array
-            const selectedPokemon = allPokemonData.find(pokemon => pokemon.name === pokemonName);
-            //console.log("Selected Pokemon:", selectedPokemon);
+        e.preventDefault();
+        const hrefAttribute = link.getAttribute('href');
+        if (!hrefAttribute) {
+            console.error('Link has no href attribute');
+            return;
+        }
 
-            // Überprüft, ob Daten für das ausgewählte Pokémon gefunden wurden
-            if (!selectedPokemon) {
-                console.error(`Daten für ${pokemonName} nicht gefunden.`);
-                return;
+        const pokemonName = hrefAttribute.toLowerCase();
+        console.log('allPokemonData:', allPokemonData);
+        const selectedPokemon = allPokemonData.find(pokemon => pokemon.name.toLowerCase() === pokemonName.toLowerCase());
+
+        console.log('selectedPokemon: ', selectedPokemon);
+        console.log('pokemonName: ', pokemonName);
+
+        if (!selectedPokemon) {
+            console.error(`Daten für ${pokemonName} nicht gefunden.`);
+            return;
+        }
+
+        try {
+            const file = 'modal.html';
+            const responseModal = await fetch(file);
+
+            if (!responseModal.ok) {
+                throw new Error(`HTTP error! status: ${responseModal.status}`);
             }
 
-            try {
-                // Pfad zur modal.html-Datei
-                const file = 'modal.html';
-                
-                // Anfrage an modal.html
-                const responseModal = await fetch(file);
-                
-                // Überprüft den Status der Antwort
-                if (!responseModal.ok) {
-                    throw new Error(`HTTP error! status: ${responseModal.status}`);
+            let textResponseModal = await responseModal.text();
+            textResponseModal = replaceValues(textResponseModal, selectedPokemon);
+            document.querySelector('.modal-content').innerHTML = textResponseModal;
+
+            // Setzen der Breite und Farbe des Fortschrittsbalkens
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(progressBar => {
+                const widthValue = parseFloat(progressBar.dataset.width);
+                progressBar.style.width = widthValue + '%';
+                if (widthValue > 50) {
+                    progressBar.style.backgroundColor = '#6DCD95';
+                } else {
+                    progressBar.style.backgroundColor = '#FDA2A2';
                 }
+            });
 
-                // Konvertiert die Antwort in Text
-                let textResponseModal = await responseModal.text();
-                
-                // Ersetzt Platzhalter im Text durch tatsächliche Daten
-                textResponseModal = replaceValues(textResponseModal, selectedPokemon);
-                
-                // Setzt den modalContent in den DOM
-                document.querySelector('.modal-content').innerHTML = textResponseModal;               
-                
+            const progressBarTotal = document.querySelector('.total');
+            progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
+            progressBarTotal.style.backgroundColor = '#faae0b';
 
-
-                selectedPokemonMoves = allPokemonMoves.filter(move => move.pokemonName === selectedPokemon.name);
-                
-                // console.log('MovePokemon: ', selectedPokemonMoves);              
-                // Nach dem Setzen des modalContents aufrufen
-                //console.log("setActiveNavigation wird aufgerufen...");
-                
-
-                //setActiveNavigation(selectedPokemonMoves);
-                //bindDropdownEvents(selectedPokemonMoves);
-                // Set default learning method to "Level-up"
-
-                //console.log(selectedPokemonMoves)
-                // Aktualisiert die Fortschrittsbalken direkt nach dem Rendern des Modals
-                const progressBars = document.querySelectorAll('.progress-bar');
-                progressBars.forEach(progressBar => {
-                    const widthValue = parseFloat(progressBar.dataset.width); 
-                    progressBar.style.width = widthValue + '%';
-
-                    if (widthValue > 50) {
-                        progressBar.style.backgroundColor = '#6DCD95';
-                    } else {
-                        progressBar.style.backgroundColor = '#FDA2A2';
-                    }
-                });
-
-                // Setzt die Breite des Fortschrittsbalkens bei Total
-                const progressBarTotal = document.querySelector('.total');
-                progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
-                progressBarTotal.style.backgroundColor = '#faae0b';
-                
-                // Zeigt das Modal an
-                modal.style.display = "block";
-
-                // Setzt die Hintergrundfarbe des Elements mit der ID 'card-first-sec'
-                const cardFirstSec = document.getElementById('card-first-sec');
+            // Hintergrundfarbe für das erste Kartenelement setzen
+            const cardFirstSec = document.getElementById('card-first-sec');
+            if (selectedPokemon.types && selectedPokemon.types[0]) {
                 cardFirstSec.style.backgroundColor = getBackgroundColor(selectedPokemon.types[0]);
-
-                // Fügt einen EventListener zum Schließen des Modals hinzu
-                const closeModal = document.getElementById('closeModal');
-                closeModal.addEventListener('click', function() {
-                    modal.style.display = "none";
-                });
-
-                // Abrufen der Evolutionsdaten
-                const evolutionData = await getEvolutionDataForPokemon(pokemonName);
-                // console.log(evolutionData);
-                // Hier können Sie weitere Aktionen ausführen, z.B. die Daten im Modal anzeigen
-
-                // Hier rufen Sie die Funktion auf, um die Bewegungen für das ausgewählte Spiel anzuzeigen
-                 
-
-                // Generieren des HTML-Codes für die Evolutionsdaten
-                const evolutionHTML = generateEvolutionHTML(evolutionData);
-
-                // Einfügen des generierten HTML-Codes in das Element mit der ID 'evolutionContent'
-                document.getElementById('evolutionContent').innerHTML = evolutionHTML;
-                
-                //console.log(document.querySelectorAll('.nav-option'));
-
-                watchDropdown(selectedPokemonMoves);
-                watchNavigationMenu(selectedPokemonMoves);
-                applyFilters(selectedPokemonMoves);
-                
-
-            } catch (error) {
-                console.error("Error loading modal content:", error);
             }
-        });
+
+            // Evolutionsdaten abrufen und HTML generieren
+            const evolutionData = await getEvolutionDataForPokemon(pokemonName);
+            const evolutionHTML = generateEvolutionHTML(evolutionData);
+            document.getElementById('evolutionContent').innerHTML = evolutionHTML;
+
+            // Dropdown- und Navigationsereignisse überwachen
+            watchDropdown(selectedPokemon.movesDetails);
+            watchNavigationMenu(selectedPokemon.movesDetails);
+            applyFilters(selectedPokemon.movesDetails);
+
+            // Zeigt das Modal an und setzt den Zustand auf offen
+            const modal = document.getElementById('pokemonModal');
+            modal.style.display = "block";
+            isModalOpen = true;
+
+            // Event-Listener für das Schließen des Modals hinzufügen
+            const closeModalButton = document.getElementById('closeModal');
+            if (closeModalButton) {
+                closeModalButton.removeEventListener('click', closeTheModal);
+                closeModalButton.addEventListener('click', closeTheModal);
+            }
+
+        } catch (error) {
+            console.error("Error loading modal content:", error);
+        }
+    });
+
+    // Event-Listener für Klicks außerhalb des Modals hinzufügen
+    window.removeEventListener('click', handleOutsideClick); // Entfernen Sie das alte Ereignis, falls es existiert
+    window.addEventListener('click', handleOutsideClick); // Fügen Sie das Ereignis hinzu, um das Modal zu schließen, wenn auf den Hintergrund geklickt wird
+
+    // Stellen Sie sicher, dass das Modal nicht sofort angezeigt wird
+    const modal = document.getElementById('pokemonModal');
+    modal.style.display = "none";
+
+    // Stellen Sie sicher, dass die .modal-content-Klicks nicht das Modal schließen
+    const modalContent = document.querySelector('.modal-content');
+    modalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
     });
 }
 
@@ -179,65 +175,83 @@ export function watchNavigationMenu(selectedPokemonMoves) {
     });
 }
 
-let currentGame = 'Sun-moon'; // Standardwert
-let currentLearnMethod = 'Level-up'; // Standardwert
+let currentGame = 'sun-moon'; // Standardwert
+let currentLearnMethod = 'level-up'; // Standardwert
 
-export function applyFilters(selectedPokemonMoves, game = currentGame, learnMethod = currentLearnMethod) {
+export function applyFilters(selectedPokemon, game = currentGame, learnMethod = currentLearnMethod) {
+    //console.log('hier stehen die Moves: ', selectedPokemon)
+    if (!Array.isArray(selectedPokemon)) {
+        console.error("selectedPokemon is not an array:", selectedPokemon);
+        return; // Verlasse die Funktion frühzeitig, da wir nicht weitermachen können
+    }
+
     // Aktualisiere die aktuellen Werte, wenn sie übergeben werden
     if (game) currentGame = game;
     if (learnMethod) currentLearnMethod = learnMethod;
 
-
-    if (!Array.isArray(selectedPokemonMoves)) {
-        console.error("selectedPokemonMoves is not an array:", selectedPokemonMoves);
-        return;
-    }
-
-    const filteredMoves = selectedPokemonMoves.map(move => {
-        const gameIndex = move.moveVersionsGroupe.indexOf(currentGame);
-        if (gameIndex !== -1 && move.moveLearnMethod[gameIndex] === currentLearnMethod) {
+    const filteredMoves = selectedPokemon.map(move => {
+        
+        // Stelle sicher, dass move.versionGroupDetails existiert und ein Array ist
+        if (!move.versionGroupDetails || !Array.isArray(move.versionGroupDetails)) {
+            console.error("move.versionGroupDetails is not available or not an array:", move.versionGroupDetails);
+            return null;
+        }
+        
+        // Finden Sie den Index des versionGroupName, der currentGame entspricht
+        const gameIndex = move.versionGroupDetails.findIndex(detail => detail.versionGroupName === currentGame);
+        if (gameIndex !== -1 && move.versionGroupDetails[gameIndex].moveLearnMethodName === currentLearnMethod) {
             return {
                 moveName: move.moveName,
                 movePower: move.movePower,
                 moveType: move.moveType,
                 moveDamageClass: move.moveDamageClass,
-                levelLearnedAt: move.levelLearnedAt[gameIndex],
-                moveLearnMethod: move.moveLearnMethod[gameIndex]
+                levelLearnedAt: move.versionGroupDetails[gameIndex].levelLearnedAt,
+                moveLearnMethod: move.versionGroupDetails[gameIndex].moveLearnMethodName
             };
         }
         return null;
     }).filter(move => move !== null);
-
+    
     updateTableHeader(currentLearnMethod);
     renderMoves(filteredMoves, currentLearnMethod);
 }
 
 // Funktion zum Ersetzen von Platzhaltern im modalContent
 function replaceValues(modalContent, pokemonData) {
-    modalContent = modalContent.replace(/{{pokemonName}}/g, capitalizeFirstLetter(pokemonData.name));
-    modalContent = modalContent.replace('{{pokemonID}}', pokemonData.id);
-    modalContent = modalContent.replace('{{pokemonType1}}', pokemonData.types[0]);
+    modalContent = modalContent.replace(/{{pokemonName}}/g, capitalizeEachWord(pokemonData.name));
+    modalContent = modalContent.replace('{{pokemonID}}', formatNumber(pokemonData.id));
+    modalContent = modalContent.replace('{{pokemonType1}}', capitalizeEachWord(pokemonData.types[0]));
     
     // Überprüft, ob ein zweiter Pokémon-Typ vorhanden ist
     if (pokemonData.types[1]) {
-        modalContent = modalContent.replace('{{pokemonType2}}', pokemonData.types[1]);
+        modalContent = modalContent.replace('{{pokemonType2}}', capitalizeEachWord(pokemonData.types[1]));
     } else {
         // Wenn kein zweiter Typ vorhanden ist, wird das div-Element ausgeblendet
         modalContent = modalContent.replace('<div id="type-2" class="badge-background badge rounded-pill">', '<div id="type-2" class="badge-background badge rounded-pill" style="display: none;">');
     }
 
     // Ersetzt das Pokémon-Bild
-    modalContent = modalContent.replace(/{{pokemonImage}}/g, pokemonData.image);
+    modalContent = modalContent.replace(/{{pokemonImage}}/g, pokemonData.sprites);
     // Ruft die Hintergrundfarbe basierend auf dem ersten Pokémon-Typ ab
     const backgroundColor = getBackgroundColor(pokemonData.types[0]);
     // Ersetzt die Hintergrundfarbe
     modalContent = modalContent.replace('{{pokemonBackgroundColor}}', backgroundColor);
-    modalContent = modalContent.replace('{{Species}}', pokemonData.genus);
+    modalContent = modalContent.replace('{{Species}}', pokemonData.genusWithoutPokemon
+    );
     modalContent = modalContent.replace('{{heightInInch}}', pokemonData.heightInInch);
     modalContent = modalContent.replace('{{height}}', pokemonData.height);
     modalContent = modalContent.replace('{{weightInLbs}}', pokemonData.weightInLbs);
     modalContent = modalContent.replace('{{weightInKg}}', pokemonData.weightInKg);
-    modalContent = modalContent.replace('{{abilities}}', pokemonData.abilities);
+    // Konstante `capitalizedAbilities` erstellen, um das Ergebnis der `map`-Funktion zu speichern.
+    // Die `map`-Funktion wird auf das Array `pokemonData.abilities` angewendet.
+    // `map` ruft eine Callback-Funktion für jedes Element des Arrays auf und erstellt ein neues Array aus den Ergebnissen.
+    const capitalizedAbilities = pokemonData.abilities.map(abilities => 
+        capitalizeEachWord(abilities)
+    );
+    modalContent = modalContent.replace('{{abilities}}', 
+    // `join` wird auf das `capitalizedAbilities`-Array angewendet, um seine Elemente zu einem einzigen String zusammenzufassen und mit dem Trennzeichen ', ' (Komma gefolgt von einem Leerzeichen) verbunden. Das Ergebnis ist ein String, welcher die Werte, separiert durch ein Komma ausgibt.
+    capitalizedAbilities.join(', ')
+  );
 
     // Überprüfen, ob ein Geschlecht vorhanden und dann das entsprechende Template rendern
     if (pokemonData.genderRateFemale == -1) {
@@ -251,8 +265,9 @@ function replaceValues(modalContent, pokemonData) {
         modalContent = modalContent.replace('{{genderRateFemale}}', pokemonData.genderRateFemale);
         modalContent = modalContent.replace('{{genderRateMale}}', pokemonData.genderRateMale);
     }
+    const capitalizedEggGroups = pokemonData.eggGroups.map(eggGroups => capitalizeEachWord(eggGroups))
+    modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
     
-    modalContent = modalContent.replace('{{eggGroups}}', pokemonData.eggGroups);
     modalContent = modalContent.replace('{{captureRate}}', pokemonData.captureRate);
     
     // Mehrfache Vorkommen: Wenn es mehrere Vorkommen von {{x}} im Modal gibt, ersetzt die Methode .replace() nur das erste Vorkommen. Alle Vorkommen ersetzen, mit einem regulären Ausdruck.
@@ -263,8 +278,10 @@ function replaceValues(modalContent, pokemonData) {
     modalContent = modalContent.replace(/{{specialAttack}}/g, pokemonData.baseStats.specialAttack);
     modalContent = modalContent.replace(/{{specialDefense}}/g, pokemonData.baseStats.specialDefense);
     modalContent = modalContent.replace(/{{speed}}/g, pokemonData.baseStats.speed);
-    modalContent = modalContent.replace(/{{totalProgress}}/g, pokemonData.totalStatProgress); // pokemonData.baseStats.totalStatProgress
+    modalContent = modalContent.replace(/{{totalProgress}}/g, pokemonData.baseStats.totalProgress); // pokemonData.baseStats.totalStatProgress
        
     return modalContent;
 }
+
+
 
