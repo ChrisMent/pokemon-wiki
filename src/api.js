@@ -38,6 +38,7 @@ function createPokemonElement(pokemon) {
     `;
     return pokemonElement;
 }
+
 export async function fetchPokemonsBaseData() {
     try {
         const response = await fetch(`${BASE_URL}pokemon?limit=${limit}&offset=${offset}`);
@@ -58,6 +59,17 @@ export async function fetchPokemonsBaseData() {
     await fetchPokemonsDetails(); // Sie müssen sicherstellen, dass dies korrekt mit den neuen Daten umgeht
     return allPokemonData; // Dies ist möglicherweise nicht notwendig, da allPokemonData bereits aktualisiert wurde
 }
+
+function correctSpriteUrl(url) {
+    const prefix = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/';
+    if (url.startsWith(prefix)) {
+      // Entferne das doppelte Vorkommen des Präfixes
+      const correctedUrl = url.replace(new RegExp(`^(${prefix})+`), prefix);
+      return correctedUrl;
+    }
+    return url;
+  }
+
 
 
 
@@ -81,7 +93,7 @@ export async function fetchPokemonsDetails() {
             
             // Caclulation with Stats
             const totalStats = hpStat + attackStat + defenseStat + specialAttackStat + specialDefenseStat + speedStat;
-            const totalStatProgress = totalStats / 6;
+            const totalStatProgress = parseFloat((totalStats / 6).toFixed(0));
 
             // Caclulation with height & weight
             const heightInInch = parseFloat((data.height * 3.937 / 10).toFixed(2));
@@ -94,6 +106,10 @@ export async function fetchPokemonsDetails() {
             // Serveral pokemon data
             const types = data.types.map(type => type.type.name)
             const abilities = data.abilities.map(ability => ability.ability.name)
+
+            // Pokemon image
+            const sprites = correctSpriteUrl(data.sprites.other.home.front_default);
+            //console.log ('Dss sind die Bilder URLs: ', sprites)
 
             const movesBaseData = data.moves.map(move => {
                 // Extrahiere die grundlegenden Bewegungsdaten
@@ -139,9 +155,17 @@ export async function fetchPokemonsDetails() {
                     total: totalStats,
                     totalProgress: totalStatProgress
                 },
-                sprites: data.sprites.other.home.front_default,
+                sprites: sprites,
                 //movesBaseData: movesBaseData
             };
+
+            try {
+                const evolutionData = await getEvolutionDataForPokemon(allPokemonData[i].name);
+                allPokemonData[i].evolutionData = evolutionData; // Fügen Sie die Evolutionsdaten hinzu
+            } catch (error) {
+                console.error("Error fetching evolution data for", allPokemonData[i].name, ":", error);
+            }
+
             // Daten zum Array hinzufügen
             allPokemonData[i] = { ...allPokemonData[i], ...pokemonsDetailsData }; 
 

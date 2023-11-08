@@ -27,8 +27,9 @@ export function renderOverview(pokemonData) {
     const bgColor = getBackgroundColor(pokemonData.types[0]);
 
     // Fügen des HTML-Inhalts zum Container hinzu
+    //console.log(pokemonData.sprites);
     pokemonContainer.innerHTML += `
-    <div class="col-6 col-lg-3">
+<div class="col-6 col-lg-3">
     <a href="${pokemonData.name}" class="pokemon-link" style="text-decoration: none; color: inherit;">
         <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}; cursor: pointer;">
             <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
