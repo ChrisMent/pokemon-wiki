@@ -70,216 +70,227 @@ function correctSpriteUrl(url) {
     return url;
   }
 
+  export async function fetchPokemonsDetails() {
+    // Parallele Anfragen für Pokemon Details
+    const detailPromises = allPokemonData.map(pokemon =>
+        fetchPokemonDetail(pokemon.url)
+    );
 
-
-
-export async function fetchPokemonsDetails() {
-    for (let i = 0; i < allPokemonData.length; i++) {
-        try {
-            // Zugriff auf die Daten der URL: https://pokeapi.co/api/v2/pokemon/[i]/
-            const response = await fetch(allPokemonData[i].url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+        const details = await Promise.all(detailPromises);
+        details.forEach((detail, i) => {
+            if (detail) { // Stellen Sie sicher, dass die Details nicht null sind
+                allPokemonData[i] = { ...allPokemonData[i], ...detail };
             }
-            const data = await response.json();
-            
-            // Stats Data Pokemon
-            const hpStat = data.stats.find(stat => stat.stat.name === "hp").base_stat;
-            const attackStat = data.stats.find(stat => stat.stat.name === "attack").base_stat;
-            const defenseStat = data.stats.find(stat => stat.stat.name === "defense").base_stat;
-            const specialAttackStat = data.stats.find(stat => stat.stat.name === "special-attack").base_stat;
-            const specialDefenseStat = data.stats.find(stat => stat.stat.name === "special-defense").base_stat;
-            const speedStat = data.stats.find(stat => stat.stat.name === "speed").base_stat;
-            
-            // Caclulation with Stats
-            const totalStats = hpStat + attackStat + defenseStat + specialAttackStat + specialDefenseStat + speedStat;
-            const totalStatProgress = parseFloat((totalStats / 6).toFixed(0));
+        });
 
-            // Caclulation with height & weight
-            const heightInInch = parseFloat((data.height * 3.937 / 10).toFixed(2));
-            const weightInLbs = parseFloat((data.weight * 0.2204623).toFixed(2))
-            const weightInKg = parseFloat((weightInLbs * 0.45359237).toFixed(2))
-            
-            // Urls for further requests
-            const speciesUrl = data.species.url
+        // Parallele Anfragen für Evolutionsdaten
+        const evolutionPromises = allPokemonData.map(pokemon =>
+            getEvolutionDataForPokemon(pokemon.name).catch(error => {
+                console.error("Error fetching evolution data for", pokemon.name, ":", error);
+                return null; // Um zu vermeiden, dass das gesamte Promise.all scheitert
+            })
+        );
 
-            // Serveral pokemon data
-            const types = data.types.map(type => type.type.name)
-            const abilities = data.abilities.map(ability => ability.ability.name)
-
-            // Pokemon image
-            const sprites = correctSpriteUrl(data.sprites.other.home.front_default);
-            //console.log ('Dss sind die Bilder URLs: ', sprites)
-
-            const movesBaseData = data.moves.map(move => {
-                // Extrahiere die grundlegenden Bewegungsdaten
-                const baseData = {
-                    name: move.move.name,
-                    url: move.move.url
-                };
-            
-                // Iteriere durch jedes version_group_detail und extrahiere die zusätzlichen Informationen
-                const versionGroupDetails = move.version_group_details.map(detail => {
-                    return {
-                        levelLearnedAt: detail.level_learned_at,
-                        moveLearnMethodName: detail.move_learn_method.name,
-                        versionGroupName: detail.version_group.name,
-                    };
-                });
-            
-                // Füge die versionGroupDetails zum baseData-Objekt hinzu
-                baseData.versionGroupDetails = versionGroupDetails;
-            
-                return baseData;
-            });
-
-            // Ausgabe der Werte innerhalt einer Konstanten!
-            const pokemonsDetailsData = {
-                id: data.id,
-                name: data.name,
-                height: data.height,
-                heightInInch: heightInInch,
-                weight: data.weight,
-                weightInLbs: weightInLbs,
-                weightInKg: weightInKg,
-                types: types,
-                speciesUrl: speciesUrl,
-                abilities: abilities,
-                baseStats: {
-                    hp: hpStat,
-                    attack: attackStat,
-                    defense: defenseStat,
-                    specialAttack: specialAttackStat,
-                    specialDefense: specialDefenseStat,
-                    speed: speedStat,
-                    total: totalStats,
-                    totalProgress: totalStatProgress
-                },
-                sprites: sprites,
-                //movesBaseData: movesBaseData
-            };
-
-            try {
-                const evolutionData = await getEvolutionDataForPokemon(allPokemonData[i].name);
-                allPokemonData[i].evolutionData = evolutionData; // Fügen Sie die Evolutionsdaten hinzu
-            } catch (error) {
-                console.error("Error fetching evolution data for", allPokemonData[i].name, ":", error);
+        const evolutionData = await Promise.all(evolutionPromises);
+        evolutionData.forEach((evolution, i) => {
+            if (evolution) {
+                allPokemonData[i].evolutionData = evolution;
             }
+        });
 
-            // Daten zum Array hinzufügen
-            allPokemonData[i] = { ...allPokemonData[i], ...pokemonsDetailsData }; 
-
-        // Temporär hinzufügen von allPokemonData zu allPokemonData[i], um es in fetchPokemonsMovesDetails zu verwenden
-        allPokemonData[i].tempMovesBaseData = movesBaseData;
-
-
-        } catch (error) {
-            console.error("Error fetching pokemon details data:", error);
-        }
+    } catch (error) {
+        console.error("Error fetching pokemon details:", error);
     }
-    await fetchPokemonsSpecies();
+    // Sie brauchen keine Daten zurückzugeben, da allPokemonData global ist
+}
+
+async function fetchPokemonDetail(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Verarbeiten Sie die Antwort und geben Sie das Detail-Objekt zurück
+        return processPokemonDetail(data);
+    } catch (error) {
+        console.error("Error fetching pokemon detail:", error);
+    }
+}
+
+function processPokemonDetail(data) {
+    // Stats Data Pokemon
+    const hpStat = data.stats.find(stat => stat.stat.name === "hp").base_stat;
+    const attackStat = data.stats.find(stat => stat.stat.name === "attack").base_stat;
+    const defenseStat = data.stats.find(stat => stat.stat.name === "defense").base_stat;
+    const specialAttackStat = data.stats.find(stat => stat.stat.name === "special-attack").base_stat;
+    const specialDefenseStat = data.stats.find(stat => stat.stat.name === "special-defense").base_stat;
+    const speedStat = data.stats.find(stat => stat.stat.name === "speed").base_stat;
+
+    // Calculation with Stats
+    const totalStats = hpStat + attackStat + defenseStat + specialAttackStat + specialDefenseStat + speedStat;
+    const totalStatProgress = parseFloat((totalStats / 6).toFixed(0));
+
+    // Calculation with height & weight
+    const heightInInch = parseFloat((data.height * 3.937 / 10).toFixed(2));
+    const weightInLbs = parseFloat((data.weight * 0.2204623).toFixed(2));
+    const weightInKg = parseFloat((weightInLbs * 0.45359237).toFixed(2));
+
+    // Urls for further requests
+    const speciesUrl = data.species.url;
+
+    // Several pokemon data
+    const types = data.types.map(type => type.type.name);
+    const abilities = data.abilities.map(ability => ability.ability.name);
+
+    // Pokemon image
+    const sprites = correctSpriteUrl(data.sprites.other.home.front_default);
+
+    const movesBaseData = data.moves.map(move => {
+        return {
+            name: move.move.name,
+            url: move.move.url,
+            versionGroupDetails: move.version_group_details.map(detail => {
+                return {
+                    levelLearnedAt: detail.level_learned_at,
+                    moveLearnMethodName: detail.move_learn_method.name,
+                    versionGroupName: detail.version_group.name,
+                };
+            })
+        };
+    });
+
+    // Erstelle das pokemonsDetailsData Objekt
+    const pokemonsDetailsData = {
+        id: data.id,
+        name: data.name,
+        height: data.height,
+        heightInInch: heightInInch,
+        weight: data.weight,
+        weightInLbs: weightInLbs,
+        weightInKg: weightInKg,
+        types: types,
+        speciesUrl: speciesUrl,
+        abilities: abilities,
+        baseStats: {
+            hp: hpStat,
+            attack: attackStat,
+            defense: defenseStat,
+            specialAttack: specialAttackStat,
+            specialDefense: specialDefenseStat,
+            speed: speedStat,
+            total: totalStats,
+            totalProgress: totalStatProgress
+        },
+        sprites: sprites
+    };
+
+    return {
+        details: pokemonsDetailsData,
+        movesBaseData: movesBaseData // Füge die movesBaseData zum Rückgabeobjekt hinzu
+    };
+}
+
+export async function fetchPokemonsMovesDetails() {
+    // Erstelle ein Array von Arrays mit Promises für jede Bewegung jedes Pokémon
+    const movesPromises = allPokemonData.map(pokemon =>
+        pokemon.tempMovesBaseData.map(moveBaseData =>
+            fetchMoveDetails(moveBaseData).catch(error => {
+                console.error("Error fetching move details for", moveBaseData.name, ":", error);
+                return null; // Verhindere, dass ein einzelner Fehler das gesamte Promise.all scheitern lässt
+            })
+        )
+    );
+
+    try {
+        // Verarbeite jedes Pokémon einzeln
+        for (let i = 0; i < movesPromises.length; i++) {
+            // Warte auf alle Bewegungsdetails des aktuellen Pokémon
+            const movesDetails = await Promise.all(movesPromises[i]);
+            // Füge nur gültige Bewegungsdetails hinzu
+            allPokemonData[i].movesDetails = movesDetails.filter(move => move !== null);
+            // Bereinige tempMovesBaseData
+            delete allPokemonData[i].tempMovesBaseData;
+        }
+    } catch (error) {
+        console.error("Error processing moves details:", error);
+    }
+
     return allPokemonData;
 }
 
-export async function fetchPokemonsSpecies(){
-for (let i = 0; i < allPokemonData.length; i++) {
+async function fetchMoveDetails(moveBaseData) {
     try {
-        
-        // Zugriff auf die Daten https://pokeapi.co/api/v2/pokemon-species/[i]/
-        // Diese sind zu finden unter [i] ---> data.species.url der Funktion fetchPokemonsDetails()
-
-        const speciesUrl = allPokemonData[i].speciesUrl;
-        const response = await fetch(speciesUrl);
-
+        const response = await fetch(moveBaseData.url);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);       
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const moveDetails = await response.json();
 
+        return {
+            moveName: moveBaseData.name,
+            moveUrl: moveBaseData.url,
+            moveType: moveDetails.type.name,
+            movePower: moveDetails.power,
+            moveDamageClass: moveDetails.damage_class.name,
+            versionGroupDetails: moveBaseData.versionGroupDetails
+        };
+    } catch (error) {
+        console.error("Error fetching move details for", moveBaseData.name, ":", error);
+        throw error; // Wirft den Fehler weiter, damit das catch oben ihn behandeln kann
+    }
+}
+
+export async function fetchPokemonsSpecies() {
+    const speciesPromises = allPokemonData.map(pokemon =>
+        fetchPokemonSpecies(pokemon.speciesUrl).catch(error => {
+            console.error("Error fetching species data for", pokemon.name, ":", error);
+            return null; // Um zu vermeiden, dass das gesamte Promise.all scheitert
+        })
+    );
+
+    try {
+        const speciesData = await Promise.all(speciesPromises);
+        speciesData.forEach((species, i) => {
+            
+            if (species) {
+                allPokemonData[i].details = { ...allPokemonData[i].details, ...species };
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching species data:", error);
+    }
+}
+
+async function fetchPokemonSpecies(speciesUrl) {
+    console.log('SpeciesURl: ',speciesUrl)
+    try {
+        const response = await fetch(speciesUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
-        
-        // Species Data Pokemon
         const genusWithPokemon = data.genera.find(g => g.language.name === 'en').genus;
         const genusWithoutPokemon = genusWithPokemon.replace(" Pokémon", "");
-        const captureRate = data.capture_rate
-        const genderRateFemale = Math.floor(data.gender_rate / 8 * 100)
-        const genderRateMale = 100 - genderRateFemale
-        const eggGroups = data.egg_groups.map(typeObj => typeObj.name)
-        
-        // Daten zum Array hinzufügen
-        const pokemonSpeciesData = {
+        const captureRate = data.capture_rate;
+        const genderRate = data.gender_rate;
+        const genderRateFemale = genderRate >= 0 ? Math.floor(genderRate / 8 * 100) : null;
+        const genderRateMale = genderRate >= 0 ? 100 - genderRateFemale : null;
+        const eggGroups = data.egg_groups.map(eggGroup => eggGroup.name);
+
+        return {
             captureRate: captureRate,
             genderRateFemale: genderRateFemale,
             genderRateMale: genderRateMale,
             eggGroups: eggGroups,
             genusWithoutPokemon: genusWithoutPokemon
-        }
-        
-        allPokemonData[i] = { ...allPokemonData[i], ...pokemonSpeciesData }; 
-
-
+        };
     } catch (error) {
-            console.error("Error fetching species data:", error);
-        }
+        console.error("Error fetching species data for URL:", speciesUrl, ":", error);
+        throw error; // Werfe den Fehler weiter, damit das catch in fetchPokemonsSpecies ihn handhaben kann
     }
-    await fetchPokemonsMovesDetails();
-    return allPokemonData;
 }
-
-export async function fetchPokemonsMovesDetails() {
-    for (let i = 0; i < allPokemonData.length; i++) {
-        
-        if (!Array.isArray(allPokemonData[i].tempMovesBaseData)) {
-            console.error(`tempMovesBaseData for ${allPokemonData[i].name} is not iterable`);
-            continue; // Überspringe das aktuelle Pokémon und fahre mit dem nächsten fort
-        }
-        
-        const pokemonName = allPokemonData[i].name; // Name des Pokémon
-        
-        // Initialisiere movesDetails für das aktuelle Pokémon
-        allPokemonData[i].movesDetails = [];
-
-        for (const moveBaseData of allPokemonData[i].tempMovesBaseData) {
-            try {
-                const response = await fetch(moveBaseData.url);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const moveDetails = await response.json();
-
-                const moveName = moveBaseData.name
-                const moveUrl = moveBaseData.url
-                const moveType = moveDetails.type.name
-                const movePower = moveDetails.power
-                const moveDamageClass = moveDetails.damage_class.name
-                const versionGroupDetails = moveBaseData.versionGroupDetails
-
-                // Verarbeite die Bewegungsdetails
-                const detailedMoveData = {
-                    pokemonName: pokemonName,
-                    moveName: moveName,
-                    moveUrl: moveUrl,
-                    moveType: moveType,
-                    movePower: movePower,
-                    moveDamageClass: moveDamageClass,
-                    versionGroupDetails: versionGroupDetails
-                    // ... füge hier weitere Details hinzu
-                };
-
-                // Hinzufügen der Bewegungsdetails, wenn nicht bereits vorhanden
-                if (!allPokemonData[i].movesDetails.find(m => m.moveName === detailedMoveData.moveName)) {
-                    allPokemonData[i].movesDetails.push(detailedMoveData);
-                }
-                
-            } catch (error) {
-                console.error("Error fetching move details for", moveBaseData.name, ":", error);
-            }
-        }
-        delete allPokemonData[i].tempMovesBaseData; // Bereinigen
-    }
-    return allPokemonData; // Rückgabe nach Verarbeitung aller Pokémon
-}
-
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
 async function getPokemonThumbnail(pokemonName) {

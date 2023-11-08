@@ -14,13 +14,25 @@ export function renderAllPokemon(allPokemonData) {
 
     // for...of Schleife, es wird über jedes Element im Array allPokemonData iteriert und die Werte in pokemonData gespeichert. Das wird solange gemacht bis das letzte Element erreicht wurde.
     for (let pokemonData of allPokemonData) {
-    // Aufrufen der Funktion renderOverview() mit den Daten aus dem der For Schleife
-        renderOverview(pokemonData);
+        // Erstelle ein neues Objekt mit den erforderlichen Daten auf der obersten Ebene
+        const pokemonDataForRendering = {
+            ...pokemonData.details,
+            movesBaseData: pokemonData.movesBaseData,
+            evolutionData: pokemonData.evolutionData,
+        };
+        renderOverview(pokemonDataForRendering);
     }
 }
 
 // Diese Funktion ist für ein einzelnes Pokémon-Objekt gedacht
 export function renderOverview(pokemonData) {
+    
+    // Überprüfe, ob pokemonData und pokemonData.types definiert sind
+    if (!pokemonData || !pokemonData.types || !pokemonData.sprites) {
+        console.error('Pokemon-Daten fehlen oder sind unvollständig:', pokemonData);
+        return; // Beendet die Funktion frühzeitig, um Fehler zu vermeiden
+    }
+    
     const pokemonContainer = document.getElementById("pokemon-container");
     
    // Setzen der Hintergrundfarbe je nach dem ersten Pokemon-Typ

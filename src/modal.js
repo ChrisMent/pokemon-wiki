@@ -218,34 +218,37 @@ export function applyFilters(selectedPokemon, game = currentGame, learnMethod = 
 
 // Funktion zum Ersetzen von Platzhaltern im modalContent
 function replaceValues(modalContent, pokemonData) {
+
+    const details = pokemonData.details;
+
     modalContent = modalContent.replace(/{{pokemonName}}/g, capitalizeEachWord(pokemonData.name));
     modalContent = modalContent.replace('{{pokemonID}}', formatNumber(pokemonData.id));
-    modalContent = modalContent.replace('{{pokemonType1}}', capitalizeEachWord(pokemonData.types[0]));
+    modalContent = modalContent.replace('{{pokemonType1}}', capitalizeEachWord(details.types[0]));
     
     // Überprüft, ob ein zweiter Pokémon-Typ vorhanden ist
-    if (pokemonData.types[1]) {
-        modalContent = modalContent.replace('{{pokemonType2}}', capitalizeEachWord(pokemonData.types[1]));
+    if (pokemonData.details.types[1]) {
+        modalContent = modalContent.replace('{{pokemonType2}}', capitalizeEachWord(details.types[1]));
     } else {
         // Wenn kein zweiter Typ vorhanden ist, wird das div-Element ausgeblendet
         modalContent = modalContent.replace('<div id="type-2" class="badge-background badge rounded-pill">', '<div id="type-2" class="badge-background badge rounded-pill" style="display: none;">');
     }
 
     // Ersetzt das Pokémon-Bild
-    modalContent = modalContent.replace(/{{pokemonImage}}/g, pokemonData.sprites);
+    modalContent = modalContent.replace(/{{pokemonImage}}/g, details.sprites);
     // Ruft die Hintergrundfarbe basierend auf dem ersten Pokémon-Typ ab
-    const backgroundColor = getBackgroundColor(pokemonData.types[0]);
+    const backgroundColor = getBackgroundColor(details.types[0]);
     // Ersetzt die Hintergrundfarbe
     modalContent = modalContent.replace('{{pokemonBackgroundColor}}', backgroundColor);
-    modalContent = modalContent.replace('{{Species}}', pokemonData.genusWithoutPokemon
+    modalContent = modalContent.replace('{{Species}}', details.genusWithoutPokemon
     );
-    modalContent = modalContent.replace('{{heightInInch}}', pokemonData.heightInInch);
-    modalContent = modalContent.replace('{{height}}', pokemonData.height);
-    modalContent = modalContent.replace('{{weightInLbs}}', pokemonData.weightInLbs);
-    modalContent = modalContent.replace('{{weightInKg}}', pokemonData.weightInKg);
+    modalContent = modalContent.replace('{{heightInInch}}', details.heightInInch);
+    modalContent = modalContent.replace('{{height}}', details.height);
+    modalContent = modalContent.replace('{{weightInLbs}}', details.weightInLbs);
+    modalContent = modalContent.replace('{{weightInKg}}', details.weightInKg);
     // Konstante `capitalizedAbilities` erstellen, um das Ergebnis der `map`-Funktion zu speichern.
     // Die `map`-Funktion wird auf das Array `pokemonData.abilities` angewendet.
     // `map` ruft eine Callback-Funktion für jedes Element des Arrays auf und erstellt ein neues Array aus den Ergebnissen.
-    const capitalizedAbilities = pokemonData.abilities.map(abilities => 
+    const capitalizedAbilities = details.abilities.map(abilities => 
         capitalizeEachWord(abilities)
     );
     modalContent = modalContent.replace('{{abilities}}', 
@@ -272,13 +275,13 @@ function replaceValues(modalContent, pokemonData) {
     
     // Mehrfache Vorkommen: Wenn es mehrere Vorkommen von {{x}} im Modal gibt, ersetzt die Methode .replace() nur das erste Vorkommen. Alle Vorkommen ersetzen, mit einem regulären Ausdruck.
 
-    modalContent = modalContent.replace(/{{hp}}/g, pokemonData.baseStats.hp);
-    modalContent = modalContent.replace(/{{attack}}/g, pokemonData.baseStats.attack);
-    modalContent = modalContent.replace(/{{defense}}/g, pokemonData.baseStats.defense);
-    modalContent = modalContent.replace(/{{specialAttack}}/g, pokemonData.baseStats.specialAttack);
-    modalContent = modalContent.replace(/{{specialDefense}}/g, pokemonData.baseStats.specialDefense);
-    modalContent = modalContent.replace(/{{speed}}/g, pokemonData.baseStats.speed);
-    modalContent = modalContent.replace(/{{totalProgress}}/g, pokemonData.baseStats.totalProgress); // pokemonData.baseStats.totalStatProgress
+    modalContent = modalContent.replace(/{{hp}}/g, details.baseStats.hp);
+    modalContent = modalContent.replace(/{{attack}}/g, details.baseStats.attack);
+    modalContent = modalContent.replace(/{{defense}}/g, details.baseStats.defense);
+    modalContent = modalContent.replace(/{{specialAttack}}/g, details.baseStats.specialAttack);
+    modalContent = modalContent.replace(/{{specialDefense}}/g, details.baseStats.specialDefense);
+    modalContent = modalContent.replace(/{{speed}}/g, details.baseStats.speed);
+    modalContent = modalContent.replace(/{{totalProgress}}/g, details.baseStats.totalProgress); // pokemonData.baseStats.totalStatProgress
        
     return modalContent;
 }
