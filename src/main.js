@@ -8,6 +8,10 @@ import { initModal } from './modal.js';
 async function main() {
     try {
         const allPokemonData = await fetchPokemonsBaseData();  
+        // Jetzt müssen Sie die Artendaten zu den Pokémon-Daten hinzufügen
+        await fetchPokemonsSpecies(allPokemonData);
+        await fetchPokemonsMovesDetails(allPokemonData); // Aufruf der Funktion, um Bewegungsdetails zu holen
+
         renderAllPokemon(allPokemonData);  
         initModal();
         console.log('Zugriff auf allPokemonData: ', allPokemonData);
