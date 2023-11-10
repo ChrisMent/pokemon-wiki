@@ -29,53 +29,56 @@ let renderedPokemonCount = 0;
 // Diese Funktion ist für ein einzelnes Pokémon-Objekt gedacht
 export function renderOverview(pokemonData) {
 
-    // Damit der Spinner erst ausgeblendet wird wenn das letzte Pokemon gerendert wurde
-
-    let totalPokemonCount = allPokemonData.length
+    let totalPokemonCount = allPokemonData.length;
     
-    // Überprüfe, ob pokemonData und pokemonData.types definiert sind
-    if (!pokemonData || !pokemonData.types || !pokemonData.sprites) {
-        console.error('Pokemon-Daten fehlen oder sind unvollständig:', pokemonData);
-        return; // Beendet die Funktion frühzeitig, um Fehler zu vermeiden
+    // Überprüfen, ob pokemonData vorhanden ist
+    if (!pokemonData) {
+        console.error('Pokemon-Datenobjekt ist undefiniert.');
+        return;
     }
-    
+
+    // Überprüfen, ob die notwendigen Daten vorhanden sind
+    if (!pokemonData.types || !pokemonData.sprites) {
+        console.error('Wichtige Pokemon-Daten fehlen:', pokemonData);
+        return;
+    }
+
     const pokemonContainer = document.getElementById("pokemon-container");
     
-   // Setzen der Hintergrundfarbe je nach dem ersten Pokemon-Typ
+    // Setzen der Hintergrundfarbe je nach dem ersten Pokemon-Typ
     const bgColor = getBackgroundColor(pokemonData.types[0]);
 
     // Fügen des HTML-Inhalts zum Container hinzu
-    //console.log(pokemonData.sprites);
     pokemonContainer.innerHTML += `
-<div class="col-6 col-lg-3">
-    <a href="${pokemonData.name}" class="pokemon-link" style="text-decoration: none; color: inherit;">
-        <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}; cursor: pointer;">
-            <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
-            <h3 class="pokemon-name">${capitalizeEachWord(pokemonData.name)}</h3>
-            <div class="overview-columns">
-                <div class="overview-badges">
-                    <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[0])}</span>
-                    ${pokemonData.types[1] ? `<span class="overview-badge badge rounded-pill" style="background-color: ${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[1])}</span>` : ''}
+        <div class="col-6 col-lg-3">
+            <a href="${pokemonData.name}" class="pokemon-link" style="text-decoration: none; color: inherit;">
+                <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}; cursor: pointer;">
+                    <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
+                    <h3 class="pokemon-name">${capitalizeEachWord(pokemonData.name)}</h3>
+                    <div class="overview-columns">
+                        <div class="overview-badges">
+                            <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[0])}</span>
+                            ${pokemonData.types[1] ? `<span class="overview-badge badge rounded-pill" style="background-color: ${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[1])}</span>` : ''}
+                        </div>
+                        <div class="overview-img-container">
+                            <img class="overview-img" src="${pokemonData.sprites}" alt="Pokemon Monster Image">
+                        </div>
+                    </div>
                 </div>
-                <div class="overview-img-container">
-                    <img class="overview-img" src="${pokemonData.sprites}" alt="Pokemon Monster Image">
-                </div>
-            </div>
+            </a>
         </div>
-    </a>
-</div>
     `;
-      // Inkrementiere den Zähler für gerenderte Pokémon
-      renderedPokemonCount++;  
 
-    //console.log('renderedPokemonCount', renderedPokemonCount)
-    
+    // Inkrementiere den Zähler für gerenderte Pokémon
+    renderedPokemonCount++;  
+
     // Wenn alle Pokémon gerendert wurden, verstecke den Ladeindikator
     if (renderedPokemonCount === totalPokemonCount) {
         hideLoadingIndicator();
         renderedPokemonCount = 0; // Setze den Zähler zurück
     }
 }
+
 
 export function generateEvolutionHTML(evolutionChain) {
     let htmlContent = '';  // Initialisieren Sie die Variablen

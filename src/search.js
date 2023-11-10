@@ -1,6 +1,9 @@
 import { allPokemonData } from './api.js';
 import { renderAllPokemon } from './render.js';
 
+let isSearchMode = false;
+let currentSearchQuery = '';
+
 // Eventhandling
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -39,43 +42,74 @@ function clearNoPokemons(){
 }
 
 // Funktion, die die eigentliche Suche durchführt
-export function performSearch() {
-    // Überprüfen, ob allPokemonData definiert und nicht leer ist
-    if (!allPokemonData || allPokemonData.length === 0) {
-        console.error("allPokemonData ist nicht definiert oder leer.");
-        return;
-    }
-
+export async function performSearch() {
     const searchInput = document.querySelector('.form-control');
-    let searchValueLower = searchInput.value.toLowerCase();
-    // console.log('Hier wird umgewandelt:' + searchValueLower);
+    currentSearchQuery = searchInput.value.trim().toLowerCase();
 
-    let searchResult = allPokemonData.filter(function(pokemon) {
-        return pokemon.name.includes(searchValueLower);
-    });
+    if (currentSearchQuery) {
+        isSearchMode = true;
+        const searchResults = await searchPokemons(currentSearchQuery);
 
-    let nothingFound = document.getElementById('info-message');
-    let searchResultList = document.getElementById('pokemon-container');
+        if (searchResults && searchResults.length > 0) {
+            // Stellen Sie sicher, dass jedes Pokémon in searchResults die notwendigen Daten enthält
+            const adaptedSearchResults = searchResults.map(pokemon => ({
+                ...pokemon.details, 
+                movesBaseData: pokemon.movesBaseData,
+                evolutionData: pokemon.evolutionData
+            }));
 
-    if (searchValueLower === ''){
-        renderAllPokemon(allPokemonData);  // Alle Pokémon anzeigen, wenn die Suche leer ist
-        nothingFound.innerHTML = ``;
-    } else if (searchResult.length === 0) {
-        nothingFound.innerHTML = `
-        <div class="alert alert-info m-3 text-center alert-dismissible fade show" role="alert">Zu deiner Suche wurde leider kein Pokemon gefunden!
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>`;
-        searchResultList.innerHTML = '';
+            renderAllPokemon(adaptedSearchResults);
+        } else {
+            // Behandlung von leeren Suchergebnissen
+            // Möglicherweise möchten Sie eine Nachricht anzeigen, dass keine Pokémon gefunden wurden
+        }
     } else {
-        renderAllPokemon(searchResult);
+        isSearchMode = false;
+        renderAllPokemon(allPokemonData.slice(0, 20)); // Oder wie viele auch immer bisher geladen wurden
     }
 }
 
-// Funktion, die den Suchbutton initialisiert
-export function searchPokemons() {
-    let searchButton = document.querySelector('.search-button');
-    searchButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        performSearch();  // Die gleiche Suchfunktion aufrufen, wenn der Suchbutton geklickt wird
-    });
+export async function searchPokemons(query) {
+    try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?search=${query}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const searchResults = data.results;
+
+        const detailedPokemons = await Promise.all(
+            searchResults.map(async (pokemon) => {
+                const pokemonDetailsResponse = await fetch(pokemon.url);
+                const pokemonDetails = await pokemonDetailsResponse.json();
+
+                // Angenommen, die URLs für movesBaseData und evolutionData sind Teil der pokemonDetails
+                const movesBaseDataURL = pokemonDetails.movesBaseDataURL; // Beispiel-URL für movesBaseData
+                const evolutionDataURL = pokemonDetails.evolutionDataURL; // Beispiel-URL für evolutionData
+
+                const [movesBaseDataResponse, evolutionDataResponse] = await Promise.all([
+                    fetch(movesBaseDataURL),
+                    fetch(evolutionDataURL)
+                ]);
+
+                const movesBaseData = await movesBaseDataResponse.json();
+                const evolutionData = await evolutionDataResponse.json();
+
+                return {
+                    ...pokemonDetails,
+                    movesBaseData: movesBaseData,
+                    evolutionData: evolutionData
+                };
+            })
+        );
+
+        return detailedPokemons;
+    } catch (error) {
+        console.error("Fehler bei der Suche:", error);
+        return [];
+    }
 }
+
+
+
+
