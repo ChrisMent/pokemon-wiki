@@ -222,7 +222,7 @@ function replaceValues(modalContent, pokemonData) {
     const details = pokemonData.details;
 
     modalContent = modalContent.replace(/{{pokemonName}}/g, capitalizeEachWord(pokemonData.name));
-    modalContent = modalContent.replace('{{pokemonID}}', formatNumber(pokemonData.id));
+    modalContent = modalContent.replace('{{pokemonID}}', formatNumber(details.id));
     modalContent = modalContent.replace('{{pokemonType1}}', capitalizeEachWord(details.types[0]));
     
     // Überprüft, ob ein zweiter Pokémon-Typ vorhanden ist
@@ -257,7 +257,7 @@ function replaceValues(modalContent, pokemonData) {
   );
 
     // Überprüfen, ob ein Geschlecht vorhanden und dann das entsprechende Template rendern
-    if (pokemonData.genderRateFemale == -1) {
+    if (details.genderRateFemale == -1) {
         const genderUnknownPattern = /<tr id="gender-standard">[\s\S]*?<\/tr>/; // Ein regulärer Ausdruck, der die <tr> Zeile mit der ID "gender-standard" erfasst
         modalContent = modalContent.replace(genderUnknownPattern, ''); 
         // Entfernen Sie das Standard-Template
@@ -265,13 +265,13 @@ function replaceValues(modalContent, pokemonData) {
         const genderStandardPattern = /<tr id="gender-unknown">[\s\S]*?<\/tr>/; // Ein regulärer Ausdruck, der die <tr> Zeile mit der ID "gender-unknown" erfasst
         modalContent = modalContent.replace(genderStandardPattern, ''); 
         // Entfernen Sie das "Unknown"-Template
-        modalContent = modalContent.replace('{{genderRateFemale}}', pokemonData.genderRateFemale);
-        modalContent = modalContent.replace('{{genderRateMale}}', pokemonData.genderRateMale);
+        modalContent = modalContent.replace('{{genderRateFemale}}', details.genderRateFemale);
+        modalContent = modalContent.replace('{{genderRateMale}}', details.genderRateMale);
     }
-    const capitalizedEggGroups = pokemonData.eggGroups.map(eggGroups => capitalizeEachWord(eggGroups))
+    const capitalizedEggGroups = details.eggGroups.map(eggGroups => capitalizeEachWord(eggGroups))
     modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
     
-    modalContent = modalContent.replace('{{captureRate}}', pokemonData.captureRate);
+    modalContent = modalContent.replace('{{captureRate}}', details.captureRate);
     
     // Mehrfache Vorkommen: Wenn es mehrere Vorkommen von {{x}} im Modal gibt, ersetzt die Methode .replace() nur das erste Vorkommen. Alle Vorkommen ersetzen, mit einem regulären Ausdruck.
 

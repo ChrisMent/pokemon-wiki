@@ -1,5 +1,5 @@
-import { lightenColor, getBackgroundColor } from './utils.js';
-import { capitalizeFirstLetter , capitalizeEachWord} from './utils.js';
+import { lightenColor, getBackgroundColor, capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
+import { hideLoadingIndicator, allPokemonData } from './api.js';
 import { initModal, applyFilters } from './modal.js';
 
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
@@ -8,7 +8,7 @@ import { initModal, applyFilters } from './modal.js';
 // --> Parameter allPokemonData ist das Array aus api.js
 
 export function renderAllPokemon(allPokemonData) {
-    //console.log('render.js')
+    
     const pokemonContainer = document.getElementById("pokemon-container");
     pokemonContainer.innerHTML = '';  // Leert den Container
 
@@ -24,8 +24,14 @@ export function renderAllPokemon(allPokemonData) {
     }
 }
 
+let renderedPokemonCount = 0;
+
 // Diese Funktion ist für ein einzelnes Pokémon-Objekt gedacht
 export function renderOverview(pokemonData) {
+
+    // Damit der Spinner erst ausgeblendet wird wenn das letzte Pokemon gerendert wurde
+
+    let totalPokemonCount = allPokemonData.length
     
     // Überprüfe, ob pokemonData und pokemonData.types definiert sind
     if (!pokemonData || !pokemonData.types || !pokemonData.sprites) {
@@ -58,8 +64,17 @@ export function renderOverview(pokemonData) {
         </div>
     </a>
 </div>
-
     `;
+      // Inkrementiere den Zähler für gerenderte Pokémon
+      renderedPokemonCount++;  
+
+    //console.log('renderedPokemonCount', renderedPokemonCount)
+    
+    // Wenn alle Pokémon gerendert wurden, verstecke den Ladeindikator
+    if (renderedPokemonCount === totalPokemonCount) {
+        hideLoadingIndicator();
+        renderedPokemonCount = 0; // Setze den Zähler zurück
+    }
 }
 
 export function generateEvolutionHTML(evolutionChain) {

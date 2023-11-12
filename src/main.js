@@ -4,11 +4,17 @@ import { renderOverview, renderAllPokemon } from './render.js';
 import { capitalizeFirstLetter, lightenColor, getBackgroundColor } from './utils.js';
 import { searchPokemons } from './search.js'
 import { initModal } from './modal.js';
+import { fetchPokemonFullList } from './data.js';
 
 async function main() {
     try {
         const allPokemonData = await fetchPokemonsBaseData();  
-        renderAllPokemon(allPokemonData);  
+        // Jetzt müssen Sie die Artendaten zu den Pokémon-Daten hinzufügen
+        await fetchPokemonsSpecies(allPokemonData);
+        await fetchPokemonsMovesDetails(allPokemonData); // Aufruf der Funktion, um Bewegungsdetails zu holen
+
+        renderAllPokemon(allPokemonData);
+        fetchPokemonFullList();  
         initModal();
         console.log('Zugriff auf allPokemonData: ', allPokemonData);
         
@@ -27,6 +33,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Event-Handler für den "Load more" Button
 document.getElementById('load-more-button').addEventListener('click', loadMorePokemons);
+
+
 
 
 

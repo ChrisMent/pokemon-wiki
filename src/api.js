@@ -2,9 +2,21 @@ import { renderOverview } from './render.js';
 
 export let allPokemonData = [];
 
-const BASE_URL = 'https://pokeapi.co/api/v2/';
+export const BASE_URL = 'https://pokeapi.co/api/v2/';
 let limit = 20;
 let offset = 0;
+
+// Funktion, um den Ladeindikator anzuzeigen
+export function showLoadingIndicator() {
+    const loadingIndicator = document.querySelector('.spinner-border');
+    loadingIndicator.style.display = 'block';
+}
+
+// Funktion, um den Ladeindikator zu verstecken
+export function hideLoadingIndicator() {
+    const loadingIndicator = document.querySelector('.spinner-border');
+    loadingIndicator.style.display = 'none';
+}
 
 // Funktion zum Laden mehrerer Pokémon
 export async function loadMorePokemons() {
@@ -40,6 +52,7 @@ function createPokemonElement(pokemon) {
 }
 
 export async function fetchPokemonsBaseData() {
+    showLoadingIndicator(); // Zeige den Ladeindikator an
     try {
         const response = await fetch(`${BASE_URL}pokemon?limit=${limit}&offset=${offset}`);
         if (!response.ok) {
@@ -61,14 +74,22 @@ export async function fetchPokemonsBaseData() {
 }
 
 function correctSpriteUrl(url) {
+    if (!url) {
+        // Hier können Sie eine Standard-URL zurückgeben oder einfach `null` beibehalten,
+        // abhängig davon, wie Sie mit fehlenden Bildern umgehen möchten.
+        return null;
+    }
+
     const prefix = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/';
     if (url.startsWith(prefix)) {
-      // Entferne das doppelte Vorkommen des Präfixes
-      const correctedUrl = url.replace(new RegExp(`^(${prefix})+`), prefix);
-      return correctedUrl;
+        // Ersetze das Präfix nur, wenn es mehr als einmal vorkommt.
+        const correctedUrl = url.replace(new RegExp(`(${prefix})+`), prefix);
+        return correctedUrl;
     }
     return url;
-  }
+}
+
+
 
   export async function fetchPokemonsDetails() {
     // Parallele Anfragen für Pokemon Details
@@ -105,7 +126,7 @@ function correctSpriteUrl(url) {
     // Sie brauchen keine Daten zurückzugeben, da allPokemonData global ist
 }
 
-async function fetchPokemonDetail(url) {
+export async function fetchPokemonDetail(url) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -192,33 +213,34 @@ function processPokemonDetail(data) {
     };
 }
 
-export async function fetchPokemonsMovesDetails() {
-    // Erstelle ein Array von Arrays mit Promises für jede Bewegung jedes Pokémon
-    const movesPromises = allPokemonData.map(pokemon =>
-        pokemon.tempMovesBaseData.map(moveBaseData =>
-            fetchMoveDetails(moveBaseData).catch(error => {
-                console.error("Error fetching move details for", moveBaseData.name, ":", error);
-                return null; // Verhindere, dass ein einzelner Fehler das gesamte Promise.all scheitern lässt
-            })
-        )
+export async function fetchPokemonsMovesDetails(pokemon) {
+    // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die movesBaseData enthält
+    if (!pokemon || !pokemon.movesBaseData) {
+        return; // Keine Daten vorhanden, also frühzeitig beenden
+    }
+
+    // Erstelle ein Array von Promises für jede Bewegung des Pokémon
+    const movesPromises = pokemon.movesBaseData.map(moveBaseData =>
+        fetchMoveDetails(moveBaseData).catch(error => {
+            console.error("Error fetching move details for", moveBaseData.name, ":", error);
+            return null; // Verhindere, dass ein einzelner Fehler das gesamte Promise.all scheitern lässt
+        })
     );
 
     try {
-        // Verarbeite jedes Pokémon einzeln
-        for (let i = 0; i < movesPromises.length; i++) {
-            // Warte auf alle Bewegungsdetails des aktuellen Pokémon
-            const movesDetails = await Promise.all(movesPromises[i]);
-            // Füge nur gültige Bewegungsdetails hinzu
-            allPokemonData[i].movesDetails = movesDetails.filter(move => move !== null);
-            // Bereinige tempMovesBaseData
-            delete allPokemonData[i].tempMovesBaseData;
-        }
+        // Warte auf alle Bewegungsdetails des Pokémon
+        const movesDetails = await Promise.all(movesPromises);
+
+        // Füge nur gültige Bewegungsdetails hinzu
+        pokemon.movesDetails = movesDetails.filter(move => move !== null);
+
+        // Bereinige movesBaseData
+        delete pokemon.movesBaseData;
     } catch (error) {
         console.error("Error processing moves details:", error);
     }
-
-    return allPokemonData;
 }
+
 
 async function fetchMoveDetails(moveBaseData) {
     try {
@@ -227,7 +249,7 @@ async function fetchMoveDetails(moveBaseData) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const moveDetails = await response.json();
-
+        
         return {
             moveName: moveBaseData.name,
             moveUrl: moveBaseData.url,
@@ -242,29 +264,26 @@ async function fetchMoveDetails(moveBaseData) {
     }
 }
 
-export async function fetchPokemonsSpecies() {
-    const speciesPromises = allPokemonData.map(pokemon =>
-        fetchPokemonSpecies(pokemon.speciesUrl).catch(error => {
-            console.error("Error fetching species data for", pokemon.name, ":", error);
-            return null; // Um zu vermeiden, dass das gesamte Promise.all scheitert
-        })
-    );
+export async function fetchPokemonsSpecies(pokemon) {
+    // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die speciesUrl enthält
+    if (!pokemon || !pokemon.details || !pokemon.details.speciesUrl) {
+        return; // Keine Daten vorhanden, also frühzeitig beenden
+    }
 
     try {
-        const speciesData = await Promise.all(speciesPromises);
-        speciesData.forEach((species, i) => {
-            
-            if (species) {
-                allPokemonData[i].details = { ...allPokemonData[i].details, ...species };
-            }
-        });
+        // Rufen Sie die Artendaten für das einzelne Pokémon ab
+        const species = await fetchPokemonSpecies(pokemon.details.speciesUrl);
+
+        if (species) {
+            pokemon.details = { ...pokemon.details, ...species };
+        }
     } catch (error) {
-        console.error("Error fetching species data:", error);
+        console.error("Error fetching species data for", pokemon.name, ":", error);
     }
 }
 
 async function fetchPokemonSpecies(speciesUrl) {
-    console.log('SpeciesURl: ',speciesUrl)
+
     try {
         const response = await fetch(speciesUrl);
         if (!response.ok) {
@@ -294,16 +313,15 @@ async function fetchPokemonSpecies(speciesUrl) {
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
 async function getPokemonThumbnail(pokemonName) {
-    try {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}/`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        return data.sprites.front_default;
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error);
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const data = await response.json();
+    let thumbnailUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png`;
+
+    // Korrigiere die URL, bevor du sie zurückgibst
+    return correctSpriteUrl(thumbnailUrl);
 }
 
 // Rekursive Funktion, um die Evolutionskette zu extrahieren
@@ -333,6 +351,19 @@ function flattenEvolutionChain(chain) {
     return result;
 }
 
+// Diese Funktion aktualisiert die Thumbnails rekursiv für jedes Element der Evolutionskette.
+async function updateEvolutionThumbnails(evolution) {
+    if (evolution) {
+        // Aktualisieren Sie das Thumbnail für die aktuelle Evolution
+        evolution.thumbnail = await getPokemonThumbnail(evolution.name);
+        
+        // Rekursiver Aufruf für die nächste Evolution
+        if (evolution.next_evolution) {
+            await updateEvolutionThumbnails(evolution.next_evolution);
+        }
+    }
+}
+
 export async function getEvolutionDataForPokemon(pokemonName) {
     try {
         // Zuerst die Pokémon-Spezies-URL abrufen, um die Evolutionskette-URL zu erhalten
@@ -349,25 +380,23 @@ export async function getEvolutionDataForPokemon(pokemonName) {
             throw new Error(`HTTP error! status: ${evolutionResponse.status}`);
         }
         const evolutionData = await evolutionResponse.json();
+
+        // Extrahieren Sie die Evolutionskette
         const evolutionChain = extractEvolutionChain(evolutionData.chain);
 
-        // Aktualisieren Sie die Thumbnail-URLs
-        evolutionChain.thumbnail = await getPokemonThumbnail(evolutionChain.name);
-        if (evolutionChain.next_evolution) {
-            evolutionChain.next_evolution.thumbnail = await getPokemonThumbnail(evolutionChain.next_evolution.name);
-            if (evolutionChain.next_evolution.next_evolution) {
-                evolutionChain.next_evolution.next_evolution.thumbnail = await getPokemonThumbnail(evolutionChain.next_evolution.next_evolution.name);
-            }
-        }
+        // Rekursiv die Thumbnails für die gesamte Evolutionskette aktualisieren
+        await updateEvolutionThumbnails(evolutionChain);
 
-        // Konvertiert die rekursive Evolutionskette in ein flaches Array
+        // Konvertieren Sie die rekursive Evolutionskette in ein flaches Array
         const flatEvolutionArray = flattenEvolutionChain(evolutionChain);
 
         return flatEvolutionArray;
 
     } catch (error) {
         console.error("There was a problem with the fetch operation:", error);
-    }}
+    }
+}
+
 
 
 
