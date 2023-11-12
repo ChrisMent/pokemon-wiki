@@ -2,7 +2,7 @@ import { renderOverview } from './render.js';
 
 export let allPokemonData = [];
 
-const BASE_URL = 'https://pokeapi.co/api/v2/';
+export const BASE_URL = 'https://pokeapi.co/api/v2/';
 let limit = 20;
 let offset = 0;
 
@@ -74,14 +74,22 @@ export async function fetchPokemonsBaseData() {
 }
 
 function correctSpriteUrl(url) {
+    if (!url) {
+        // Hier können Sie eine Standard-URL zurückgeben oder einfach `null` beibehalten,
+        // abhängig davon, wie Sie mit fehlenden Bildern umgehen möchten.
+        return null;
+    }
+
     const prefix = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/';
     if (url.startsWith(prefix)) {
-      // Entferne das doppelte Vorkommen des Präfixes
-      const correctedUrl = url.replace(new RegExp(`^(${prefix})+`), prefix);
-      return correctedUrl;
+        // Ersetze das Präfix nur, wenn es mehr als einmal vorkommt.
+        const correctedUrl = url.replace(new RegExp(`(${prefix})+`), prefix);
+        return correctedUrl;
     }
     return url;
-  }
+}
+
+
 
   export async function fetchPokemonsDetails() {
     // Parallele Anfragen für Pokemon Details
@@ -118,7 +126,7 @@ function correctSpriteUrl(url) {
     // Sie brauchen keine Daten zurückzugeben, da allPokemonData global ist
 }
 
-async function fetchPokemonDetail(url) {
+export async function fetchPokemonDetail(url) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -205,32 +213,32 @@ function processPokemonDetail(data) {
     };
 }
 
-export async function fetchPokemonsMovesDetails() {
-    // Erstelle ein Array von Arrays mit Promises für jede Bewegung jedes Pokémon
-    const movesPromises = allPokemonData.map(pokemon =>
-        pokemon.movesBaseData.map(moveBaseData =>
-            fetchMoveDetails(moveBaseData).catch(error => {
-                console.error("Error fetching move details for", moveBaseData.name, ":", error);
-                return null; // Verhindere, dass ein einzelner Fehler das gesamte Promise.all scheitern lässt
-            })
-        )
+export async function fetchPokemonsMovesDetails(pokemon) {
+    // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die movesBaseData enthält
+    if (!pokemon || !pokemon.movesBaseData) {
+        return; // Keine Daten vorhanden, also frühzeitig beenden
+    }
+
+    // Erstelle ein Array von Promises für jede Bewegung des Pokémon
+    const movesPromises = pokemon.movesBaseData.map(moveBaseData =>
+        fetchMoveDetails(moveBaseData).catch(error => {
+            console.error("Error fetching move details for", moveBaseData.name, ":", error);
+            return null; // Verhindere, dass ein einzelner Fehler das gesamte Promise.all scheitern lässt
+        })
     );
 
     try {
-        // Verarbeite jedes Pokémon einzeln
-        for (let i = 0; i < movesPromises.length; i++) {
-            // Warte auf alle Bewegungsdetails des aktuellen Pokémon
-            const movesDetails = await Promise.all(movesPromises[i]);
-            // Füge nur gültige Bewegungsdetails hinzu
-            allPokemonData[i].movesDetails = movesDetails.filter(move => move !== null);
-            // Bereinige movesBaseData
-            delete allPokemonData[i].movesBaseData; // Aktualisiere diesen Teil entsprechend
-        }
+        // Warte auf alle Bewegungsdetails des Pokémon
+        const movesDetails = await Promise.all(movesPromises);
+
+        // Füge nur gültige Bewegungsdetails hinzu
+        pokemon.movesDetails = movesDetails.filter(move => move !== null);
+
+        // Bereinige movesBaseData
+        delete pokemon.movesBaseData;
     } catch (error) {
         console.error("Error processing moves details:", error);
     }
-
-    return allPokemonData;
 }
 
 
@@ -256,27 +264,24 @@ async function fetchMoveDetails(moveBaseData) {
     }
 }
 
-export async function fetchPokemonsSpecies(allPokemonData) {
-
-    const speciesPromises = allPokemonData.map(pokemon =>
-        fetchPokemonSpecies(pokemon.details.speciesUrl).catch(error => {
-            console.error("Error fetching species data for", pokemon.name, ":", error);
-            return null; // Um zu vermeiden, dass das gesamte Promise.all scheitert
-        })
-    );
+export async function fetchPokemonsSpecies(pokemon) {
+    // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die speciesUrl enthält
+    if (!pokemon || !pokemon.details || !pokemon.details.speciesUrl) {
+        return; // Keine Daten vorhanden, also frühzeitig beenden
+    }
 
     try {
-        const speciesData = await Promise.all(speciesPromises);
-        speciesData.forEach((species, i) => {
-            
-            if (species) {
-                allPokemonData[i].details = { ...allPokemonData[i].details, ...species };
-            }
-        });
+        // Rufen Sie die Artendaten für das einzelne Pokémon ab
+        const species = await fetchPokemonSpecies(pokemon.details.speciesUrl);
+
+        if (species) {
+            pokemon.details = { ...pokemon.details, ...species };
+        }
     } catch (error) {
-        console.error("Error fetching species data:", error);
+        console.error("Error fetching species data for", pokemon.name, ":", error);
     }
 }
+
 async function fetchPokemonSpecies(speciesUrl) {
 
     try {

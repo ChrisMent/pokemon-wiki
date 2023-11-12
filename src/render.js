@@ -8,7 +8,7 @@ import { initModal, applyFilters } from './modal.js';
 // --> Parameter allPokemonData ist das Array aus api.js
 
 export function renderAllPokemon(allPokemonData) {
-    //console.log('render.js')
+    
     const pokemonContainer = document.getElementById("pokemon-container");
     pokemonContainer.innerHTML = '';  // Leert den Container
 
