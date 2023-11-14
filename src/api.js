@@ -3,7 +3,7 @@ import { renderOverview } from './render.js';
 export let allPokemonData = [];
 
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 20;
+let limit = 25;
 let offset = 0;
 
 // Funktion, um den Ladeindikator anzuzeigen
@@ -27,7 +27,7 @@ export async function loadMorePokemons() {
 }
 
 // Funktion zum Aktualisieren der UI mit neuen Pokémon-Daten
-function updateUIWithNewPokemons(newPokemonData) {
+export function updateUIWithNewPokemons(newPokemonData) {
     const pokemonContainer = document.getElementById('pokemon-container');
     if (!pokemonContainer) {
         console.error('Das Element mit der ID "pokemon-container" wurde nicht gefunden.');
@@ -95,6 +95,7 @@ function correctSpriteUrl(url) {
     // Parallele Anfragen für Pokemon Details
     const detailPromises = allPokemonData.map(pokemon =>
         fetchPokemonDetail(pokemon.url)
+        
     );
 
     try {
@@ -269,11 +270,11 @@ export async function fetchPokemonsSpecies(pokemon) {
     if (!pokemon || !pokemon.details || !pokemon.details.speciesUrl) {
         return; // Keine Daten vorhanden, also frühzeitig beenden
     }
-
+    
     try {
         // Rufen Sie die Artendaten für das einzelne Pokémon ab
         const species = await fetchPokemonSpecies(pokemon.details.speciesUrl);
-
+        
         if (species) {
             pokemon.details = { ...pokemon.details, ...species };
         }
@@ -290,7 +291,11 @@ async function fetchPokemonSpecies(speciesUrl) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        const genusWithPokemon = data.genera.find(g => g.language.name === 'en').genus;
+
+        // Überprüfen Sie, ob die genera-Daten vorhanden sind und ob es eine englische Bezeichnung gibt
+        const genusEntry = data.genera.find(g => g.language.name === 'en');
+        // Setzen Sie den genus-Wert, verwenden Sie "Unknown" als Fallback
+        const genusWithPokemon = genusEntry ? genusEntry.genus : "Unknown";
         const genusWithoutPokemon = genusWithPokemon.replace(" Pokémon", "");
         const captureRate = data.capture_rate;
         const genderRate = data.gender_rate;
@@ -312,8 +317,13 @@ async function fetchPokemonSpecies(speciesUrl) {
 }
 
 // Funktion, um die Pokemon-Thumbnail-URL zu erhalten
-async function getPokemonThumbnail(pokemonName) {
-    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+async function getPokemonThumbnail(pokemonId) {
+    if (typeof pokemonId === 'undefined') {
+        console.error('Keine gültige Pokemon-ID übergeben');
+        return null; // oder URL eines Standard-Thumbnails
+    }
+    
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -326,8 +336,14 @@ async function getPokemonThumbnail(pokemonName) {
 
 // Rekursive Funktion, um die Evolutionskette zu extrahieren
 function extractEvolutionChain(chain) {
+    const pokemonName = chain.species.name;
+    const pokemonEntry = allPokemonData.find(p => p.name === pokemonName);
+    const pokemonId = pokemonEntry ? pokemonEntry.details.id : null;
+    //console.log(`Extrahiere: ${pokemonName}, ID: ${pokemonId}`);
+
     const result = {
-        name: chain.species.name,
+        id: pokemonId,
+        name: pokemonName,
         thumbnail: null, // Dies wird später aktualisiert
         min_level: chain.evolution_details[0]?.min_level || null
     };
@@ -354,9 +370,16 @@ function flattenEvolutionChain(chain) {
 // Diese Funktion aktualisiert die Thumbnails rekursiv für jedes Element der Evolutionskette.
 async function updateEvolutionThumbnails(evolution) {
     if (evolution) {
-        // Aktualisieren Sie das Thumbnail für die aktuelle Evolution
-        evolution.thumbnail = await getPokemonThumbnail(evolution.name);
-        
+        // Prüfen, ob eine gültige ID vorhanden ist
+        if (evolution.id) {
+            try {
+                evolution.thumbnail = await getPokemonThumbnail(evolution.id);
+            } catch (error) {
+                console.error("Fehler beim Laden des Thumbnails für", evolution.name, ":", error);
+                evolution.thumbnail = null; // Setze ein Standard-Thumbnail oder belasse es bei null
+            }
+        }
+
         // Rekursiver Aufruf für die nächste Evolution
         if (evolution.next_evolution) {
             await updateEvolutionThumbnails(evolution.next_evolution);
@@ -364,10 +387,10 @@ async function updateEvolutionThumbnails(evolution) {
     }
 }
 
-export async function getEvolutionDataForPokemon(pokemonName) {
+export async function getEvolutionDataForPokemon(pokemonId) {
     try {
         // Zuerst die Pokémon-Spezies-URL abrufen, um die Evolutionskette-URL zu erhalten
-        const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonName}/`);
+        const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}/`);
         if (!speciesResponse.ok) {
             throw new Error(`HTTP error! status: ${speciesResponse.status}`);
         }
@@ -396,8 +419,4 @@ export async function getEvolutionDataForPokemon(pokemonName) {
         console.error("There was a problem with the fetch operation:", error);
     }
 }
-
-
-
-
 

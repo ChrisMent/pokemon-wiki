@@ -8,21 +8,23 @@ import { fetchPokemonFullList } from './data.js';
 
 async function main() {
     try {
-        const allPokemonData = await fetchPokemonsBaseData();  
-        // Jetzt müssen Sie die Artendaten zu den Pokémon-Daten hinzufügen
-        await fetchPokemonsSpecies(allPokemonData);
-        await fetchPokemonsMovesDetails(allPokemonData); // Aufruf der Funktion, um Bewegungsdetails zu holen
+        const allPokemonData = await fetchPokemonsBaseData();
+
+        for (const pokemon of allPokemonData) {
+            await fetchPokemonsSpecies(pokemon);
+            await fetchPokemonsMovesDetails(pokemon);
+        }
 
         renderAllPokemon(allPokemonData);
-        fetchPokemonFullList();  
+        fetchPokemonFullList();
         initModal();
         console.log('Zugriff auf allPokemonData: ', allPokemonData);
-        
         
     } catch (error) {
         console.error("Fehler beim Laden oder Rendern der Pokemon:", error);
     }
 }
+
 
 document.addEventListener("DOMContentLoaded", function() {
     // Hauptfunktion aufrufen um den Prozess zu starten!

@@ -4,7 +4,7 @@ export let allPokemonsList = [];
 
 export async function fetchPokemonFullList() {
     try {
-        const response = await fetch(`${BASE_URL}pokemon?limit=100000`);
+        const response = await fetch(`${BASE_URL}pokemon?limit=1017`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

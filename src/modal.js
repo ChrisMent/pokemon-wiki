@@ -40,12 +40,13 @@ export async function initModal() {
             return;
         }
 
-        const pokemonName = hrefAttribute.toLowerCase();
-        console.log('allPokemonData:', allPokemonData);
-        const selectedPokemon = allPokemonData.find(pokemon => pokemon.name.toLowerCase() === pokemonName.toLowerCase());
+        const pokemonName = hrefAttribute.split('/').pop().toLowerCase();
+        console.log('Klick auf Pokémon:', pokemonName);
+        
+       
+        const selectedPokemon = allPokemonData.find(pokemon => pokemon.name && pokemon.name.toLowerCase() === pokemonName.toLowerCase());
 
-        console.log('selectedPokemon: ', selectedPokemon);
-        console.log('pokemonName: ', pokemonName);
+        console.log('selectedPokemon:', selectedPokemon);
 
         if (!selectedPokemon) {
             console.error(`Daten für ${pokemonName} nicht gefunden.`);
@@ -82,8 +83,11 @@ export async function initModal() {
 
             // Hintergrundfarbe für das erste Kartenelement setzen
             const cardFirstSec = document.getElementById('card-first-sec');
-            if (selectedPokemon.types && selectedPokemon.types[0]) {
-                cardFirstSec.style.backgroundColor = getBackgroundColor(selectedPokemon.types[0]);
+            console.log('Selected Pokemon Details:', selectedPokemon.details);
+            if (selectedPokemon.details && selectedPokemon.details.types && selectedPokemon.details.types[0]) {
+                const bgColor = getBackgroundColor(selectedPokemon.details.types[0]);
+                console.log('Background color:', bgColor);
+                cardFirstSec.style.backgroundColor = bgColor;
             }
 
             // Evolutionsdaten abrufen und HTML generieren
@@ -268,6 +272,8 @@ function replaceValues(modalContent, pokemonData) {
         modalContent = modalContent.replace('{{genderRateFemale}}', details.genderRateFemale);
         modalContent = modalContent.replace('{{genderRateMale}}', details.genderRateMale);
     }
+    //console.log('Selected Pokemon:', selectedPokemon);
+    //console.log('Details:', selectedPokemon.details);
     const capitalizedEggGroups = details.eggGroups.map(eggGroups => capitalizeEachWord(eggGroups))
     modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
     
