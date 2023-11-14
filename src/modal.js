@@ -41,11 +41,11 @@ export async function initModal() {
         }
 
         const pokemonName = hrefAttribute.toLowerCase();
-        console.log('allPokemonData:', allPokemonData);
+        console.log('Klick auf Pokémon:', pokemonName);
+        
+       
         const selectedPokemon = allPokemonData.find(pokemon => pokemon.name.toLowerCase() === pokemonName.toLowerCase());
-
-        console.log('selectedPokemon: ', selectedPokemon);
-        console.log('pokemonName: ', pokemonName);
+        console.log('selectedPokemon:', selectedPokemon);
 
         if (!selectedPokemon) {
             console.error(`Daten für ${pokemonName} nicht gefunden.`);
@@ -268,6 +268,8 @@ function replaceValues(modalContent, pokemonData) {
         modalContent = modalContent.replace('{{genderRateFemale}}', details.genderRateFemale);
         modalContent = modalContent.replace('{{genderRateMale}}', details.genderRateMale);
     }
+    //console.log('Selected Pokemon:', selectedPokemon);
+    //console.log('Details:', selectedPokemon.details);
     const capitalizedEggGroups = details.eggGroups.map(eggGroups => capitalizeEachWord(eggGroups))
     modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
     
