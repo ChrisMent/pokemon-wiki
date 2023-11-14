@@ -3,7 +3,7 @@ import { renderOverview } from './render.js';
 export let allPokemonData = [];
 
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 20;
+let limit = 25;
 let offset = 0;
 
 // Funktion, um den Ladeindikator anzuzeigen
@@ -27,7 +27,7 @@ export async function loadMorePokemons() {
 }
 
 // Funktion zum Aktualisieren der UI mit neuen Pokémon-Daten
-function updateUIWithNewPokemons(newPokemonData) {
+export function updateUIWithNewPokemons(newPokemonData) {
     const pokemonContainer = document.getElementById('pokemon-container');
     if (!pokemonContainer) {
         console.error('Das Element mit der ID "pokemon-container" wurde nicht gefunden.');

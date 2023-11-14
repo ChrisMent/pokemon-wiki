@@ -1,7 +1,8 @@
-import { allPokemonData, fetchPokemonDetail, fetchPokemonsMovesDetails , fetchPokemonsSpecies, getEvolutionDataForPokemon } from './api.js';
+import { allPokemonData, fetchPokemonDetail, fetchPokemonsMovesDetails , fetchPokemonsSpecies, getEvolutionDataForPokemon, updateUIWithNewPokemons } from './api.js';
 import { renderAllPokemon } from './render.js'; 
 import { allPokemonsList } from './data.js';
 import { initModal } from './modal.js';
+import { getBackgroundColor } from './utils.js'
 
 // Eventhandling
 
@@ -88,7 +89,15 @@ export async function performSearch() {
         // Stellen Sie sicher, dass dies die aktuellste Suchanfrage ist
         if (responseQuery === lastQuery && currentSearchPromise === searchPromise) {
             if (searchResults && searchResults.length > 0) {
-                renderAllPokemon(searchResults);
+                // Leeren der aktuellen allPokemonData
+                allPokemonData.length = 0;
+
+                // Hinzufügen der Suchergebnisse zu allPokemonData
+                allPokemonData.push(...searchResults);
+
+                // Aktualisieren der Benutzeroberfläche mit den neuen Daten
+                console.log('allPokemonData: ', allPokemonData)
+                renderAllPokemon(allPokemonData);
                 initModal();
             } else {
                 nothingFound.innerHTML = `
@@ -107,6 +116,7 @@ export async function performSearch() {
 }
 
 
+
 export async function searchPokemons(query) {
     if (!query) return [];
 
@@ -117,12 +127,14 @@ export async function searchPokemons(query) {
     let detailedPokemons = [];
 
     try {
-        // Abrufen der Detaildaten für jedes gefilterte Pokémon
         const detailedPokemonsPromises = filteredPokemons.map(pokemon => fetchPokemonDetail(pokemon.url));
         detailedPokemons = await Promise.all(detailedPokemonsPromises);
 
         // Zusätzliche Details für jedes Pokémon abrufen
-        for (let pokemon of detailedPokemons) {
+        for (let i = 0; i < detailedPokemons.length; i++) {
+            const pokemon = detailedPokemons[i];
+            const originalPokemon = filteredPokemons[i];
+
             if (pokemon && pokemon.details && pokemon.details.speciesUrl) {
                 // Bewegungen und Arten abrufen
                 await fetchPokemonsMovesDetails(pokemon);
@@ -130,18 +142,25 @@ export async function searchPokemons(query) {
 
                 // Evolutionsdaten abrufen
                 const speciesId = pokemon.details.speciesUrl.split('/').filter(part => part).pop();
+                console.log(`Abrufen der Evolutionsdaten für Species ID ${speciesId} für Pokémon ${originalPokemon.name}`);
                 try {
                     const evolutionData = await getEvolutionDataForPokemon(speciesId);
+                    console.log(`Evolutionsdaten für ${originalPokemon.name}:`, evolutionData);
                     pokemon.evolutionData = evolutionData;
                 } catch (evolutionError) {
-                    console.error(`Fehler beim Abrufen der Evolutionsdaten für ${pokemon.name}:`, evolutionError);
+                    console.error(`Fehler beim Abrufen der Evolutionsdaten für ${originalPokemon.name}:`, evolutionError);
                 }
+
+                // Hinzufügen von Name und URL
+                pokemon.name = originalPokemon.name;
+                pokemon.url = originalPokemon.url;
             }
         }
     } catch (error) {
         console.error('Fehler beim Abrufen der Detaildaten für Pokémon:', error);
-        // Implementieren Sie eine geeignete Fehlerbehandlung
     }
-    //console.log('Suchergebnisse:', detailedPokemons); // Neue Zeile
+
     return detailedPokemons;
 }
+
+

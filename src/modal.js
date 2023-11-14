@@ -40,11 +40,12 @@ export async function initModal() {
             return;
         }
 
-        const pokemonName = hrefAttribute.toLowerCase();
+        const pokemonName = hrefAttribute.split('/').pop().toLowerCase();
         console.log('Klick auf Pokémon:', pokemonName);
         
        
-        const selectedPokemon = allPokemonData.find(pokemon => pokemon.name.toLowerCase() === pokemonName.toLowerCase());
+        const selectedPokemon = allPokemonData.find(pokemon => pokemon.name && pokemon.name.toLowerCase() === pokemonName.toLowerCase());
+
         console.log('selectedPokemon:', selectedPokemon);
 
         if (!selectedPokemon) {
@@ -82,8 +83,11 @@ export async function initModal() {
 
             // Hintergrundfarbe für das erste Kartenelement setzen
             const cardFirstSec = document.getElementById('card-first-sec');
-            if (selectedPokemon.types && selectedPokemon.types[0]) {
-                cardFirstSec.style.backgroundColor = getBackgroundColor(selectedPokemon.types[0]);
+            console.log('Selected Pokemon Details:', selectedPokemon.details);
+            if (selectedPokemon.details && selectedPokemon.details.types && selectedPokemon.details.types[0]) {
+                const bgColor = getBackgroundColor(selectedPokemon.details.types[0]);
+                console.log('Background color:', bgColor);
+                cardFirstSec.style.backgroundColor = bgColor;
             }
 
             // Evolutionsdaten abrufen und HTML generieren
