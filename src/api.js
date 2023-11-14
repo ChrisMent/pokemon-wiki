@@ -167,7 +167,16 @@ function processPokemonDetail(data) {
     const abilities = data.abilities.map(ability => ability.ability.name);
 
     // Pokemon image
-    const sprites = correctSpriteUrl(data.sprites.other.home.front_default);
+    // Versuche, das Sprite aus dem Hauptpfad zu erhalten
+    let spriteUrl = data.sprites.other.home.front_default;
+
+    // Wenn das Haupt-Sprite nicht verfügbar ist, verwende das alternative Sprite
+    if (!spriteUrl) {
+        spriteUrl = data.sprites.other['official-artwork'].front_default;
+    }
+
+    // Korrigiere die URL, falls notwendig
+    const sprites = correctSpriteUrl(spriteUrl);
 
     const movesBaseData = data.moves.map(move => {
         return {
@@ -337,15 +346,20 @@ async function getPokemonThumbnail(pokemonId) {
 // Rekursive Funktion, um die Evolutionskette zu extrahieren
 function extractEvolutionChain(chain) {
     const pokemonName = chain.species.name;
-    const pokemonEntry = allPokemonData.find(p => p.name === pokemonName);
-    const pokemonId = pokemonEntry ? pokemonEntry.details.id : null;
-    //console.log(`Extrahiere: ${pokemonName}, ID: ${pokemonId}`);
+    const pokemonSpeciesUrl = chain.species.url;
+    const pokemonId = pokemonSpeciesUrl.split("/").filter(Boolean).pop(); // Extrahiert die ID aus der URL
+
+    let min_level = null;
+    if (chain.evolution_details.length > 0) {
+        // Extrahieren des min_level aus den Evolutionsdetails, falls vorhanden
+        min_level = chain.evolution_details[0].min_level;
+    }
 
     const result = {
-        id: pokemonId,
+        id: parseInt(pokemonId),
         name: pokemonName,
         thumbnail: null, // Dies wird später aktualisiert
-        min_level: chain.evolution_details[0]?.min_level || null
+        min_level: min_level
     };
 
     // Wenn es eine weitere Evolution gibt, fügen Sie sie hinzu
@@ -355,6 +369,9 @@ function extractEvolutionChain(chain) {
 
     return result;
 }
+
+
+
 
 // Hilfsfunktion, um die rekursive Evolutionskette in ein flaches Array zu konvertieren
 function flattenEvolutionChain(chain) {
@@ -389,12 +406,15 @@ async function updateEvolutionThumbnails(evolution) {
 
 export async function getEvolutionDataForPokemon(pokemonId) {
     try {
+        console.log('Abrufen der Evolutionsdaten für Species ID', pokemonId);
+
         // Zuerst die Pokémon-Spezies-URL abrufen, um die Evolutionskette-URL zu erhalten
         const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}/`);
         if (!speciesResponse.ok) {
             throw new Error(`HTTP error! status: ${speciesResponse.status}`);
         }
         const speciesData = await speciesResponse.json();
+        console.log('Species-Daten:', speciesData);
         const evolutionChainUrl = speciesData.evolution_chain.url;
 
         // Evolutionskette abrufen
@@ -403,20 +423,26 @@ export async function getEvolutionDataForPokemon(pokemonId) {
             throw new Error(`HTTP error! status: ${evolutionResponse.status}`);
         }
         const evolutionData = await evolutionResponse.json();
+        console.log('Evolutionskettendaten:', evolutionData);
 
         // Extrahieren Sie die Evolutionskette
         const evolutionChain = extractEvolutionChain(evolutionData.chain);
+        console.log('Extrahierte Evolutionskette:', evolutionChain);
 
         // Rekursiv die Thumbnails für die gesamte Evolutionskette aktualisieren
         await updateEvolutionThumbnails(evolutionChain);
+        console.log('Aktualisierte Evolutionskette mit Thumbnails:', evolutionChain);
 
         // Konvertieren Sie die rekursive Evolutionskette in ein flaches Array
         const flatEvolutionArray = flattenEvolutionChain(evolutionChain);
+        console.log('Flache Evolutionskette:', flatEvolutionArray);
 
         return flatEvolutionArray;
 
     } catch (error) {
-        console.error("There was a problem with the fetch operation:", error);
+        console.error("Fehler bei der Fetch-Operation:", error);
     }
 }
+
+
 
