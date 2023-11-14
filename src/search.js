@@ -10,22 +10,29 @@ document.addEventListener("DOMContentLoaded", function() {
     const searchInput = document.querySelector('.form-control');
     const searchButton = document.querySelector('.search-button');
     
-    searchInput.addEventListener('input', performSearch);  // input Event-Listener hinzufügen
-    searchButton.addEventListener('click', handleSearchButtonClick);  // click Event-Listener hinzufügen
+    // Event-Listener für die Eingabetaste im Suchfeld
+    searchInput.addEventListener('keypress', async (event) => {
+        if (event.key === 'Enter') {
+            // Verhindern Sie, dass das Standardverhalten des Formulars das Neuladen der Seite verursacht
+            event.preventDefault();
+            // Führen Sie die Suche mit dem aktuellen Wert des Suchfelds aus
+            await performSearch(event);
+        }
+    });
+
+    // Event-Listener für den Such-Button
+    searchButton.addEventListener('click', handleSearchButtonClick); // click Event-Listener hinzufügen
         
     // Event-Listener für den Close-Button dynamisch hinzufügen
-    
-    // Anstatt Event-Listener direkt an den btn-close-Button anzuhängen, wird er an das document-Objekt gebunden. Der Listener wird für jeden Klick im Dokument ausgelöst, unabhängig davon, auf welches Element geklickt wurde.
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('btn-close')) {
+            clearNoPokemons();
+        }
+    });
 
-        document.addEventListener('click', function(event) {
-            if (event.target.classList.contains('btn-close')) {
-                clearNoPokemons();
-            }
-            // Im Inneren des Event-Listeners wird geprüft, ob das Element, auf das geklickt wurde (event.target), die Klasse btn-close hat:
-        });
-    
     searchPokemons();
 });
+
 
 // Funktion, die bei Klick auf den Suchbutton aufgerufen wird
 function handleSearchButtonClick(e) {
@@ -60,7 +67,7 @@ function searchDebounce(func, wait) {
 };
 
 // Event-Listener für das Suchfeld
-document.querySelector('.form-control').addEventListener('input', searchDebounce(performSearch, 1200));
+document.querySelector('.form-control').addEventListener('input', searchDebounce(performSearch, 3000));
 
 // Exportieren der Haupt-Suchfunktion
 export async function performSearch() {
@@ -142,10 +149,10 @@ export async function searchPokemons(query) {
 
                 // Evolutionsdaten abrufen
                 const speciesId = pokemon.details.speciesUrl.split('/').filter(part => part).pop();
-                console.log(`Abrufen der Evolutionsdaten für Species ID ${speciesId} für Pokémon ${originalPokemon.name}`);
+                //console.log(`Abrufen der Evolutionsdaten für Species ID ${speciesId} für Pokémon ${originalPokemon.name}`);
                 try {
                     const evolutionData = await getEvolutionDataForPokemon(speciesId);
-                    console.log(`Evolutionsdaten für ${originalPokemon.name}:`, evolutionData);
+                    //console.log(`Evolutionsdaten für ${originalPokemon.name}:`, evolutionData);
                     pokemon.evolutionData = evolutionData;
                 } catch (evolutionError) {
                     console.error(`Fehler beim Abrufen der Evolutionsdaten für ${originalPokemon.name}:`, evolutionError);

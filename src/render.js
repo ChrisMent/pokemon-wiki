@@ -102,7 +102,7 @@ export function generateEvolutionHTML(evolutionChain) {
                 </div>
                 <div class="col d-flex align-items-center justify-content-center flex-column">
                     <img src="/pokemon-wiki/img/arrow-right.svg" alt="evolution-arrow-right">
-                    <div class="padding-mobile"><strong>Lvl ${nextPokemon.min_level}</strong></div>
+                    <div class="padding-mobile"></div>
                 </div>
                 <div class="col">
                     <div class="evolution-pokemon">
