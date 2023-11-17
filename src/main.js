@@ -18,13 +18,12 @@ async function main() {
         renderAllPokemon(allPokemonData);
         fetchPokemonFullList();
         initModal();
-        console.log('Zugriff auf allPokemonData: ', allPokemonData);
+        //console.log('Zugriff auf allPokemonData: ', allPokemonData);
         
     } catch (error) {
         console.error("Fehler beim Laden oder Rendern der Pokemon:", error);
     }
 }
-
 
 document.addEventListener("DOMContentLoaded", function() {
     // Hauptfunktion aufrufen um den Prozess zu starten!
@@ -35,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Event-Handler für den "Load more" Button
 document.getElementById('load-more-button').addEventListener('click', loadMorePokemons);
+
 
 
 

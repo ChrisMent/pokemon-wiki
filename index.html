@@ -11,6 +11,13 @@
         crossorigin="anonymous"></script>
     <script type="module" src="/pokemon-wiki/src/main.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/favicon/site.webmanifest">
+    <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
     <title>Pokemon - Pokedex</title>
 </head>
 
@@ -24,25 +31,32 @@
 
     </div>
 
-    <div class="base-wrapper">
-        <nav class="navbar bg-body-tertiary">
-            <div class="head container-fluid">
-                <div class="header-container mb-4">
-                    <img src="/pokemon-wiki/img/pokemon_logo.png" alt="Logo" width="45" height="45"
-                        class="d-inline-block align-text-top">
-                    <a class="navbar-brand">
-                        <h2 class="fw-bolder">Pokedex</h2>
-                    </a>
-                </div>
-                <div class="search-container">
-                    <form class="d-flex" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Search by name ..."
-                            aria-label="Search">
-                        <button class="search-button btn btn-outline-success" type="submit">Search</button>
-                    </form>
-                </div>
+    <div class="base-wrapper container">
+        <div class="head">
+            <div class="header-container mb-4">
+                <img src="/pokemon-wiki/img/pokemon_logo.png" alt="Logo" width="45" height="45"
+                    class="d-inline-block align-text-top">
+                <a class="navbar-brand">
+                    <h2 class="fw-bolder">Pokedex</h2>
+                </a>
             </div>
-        </nav>
+
+            <div class="search-container">
+                <form id="search-form" class="d-flex" role="search">
+                    <div id="input-container">
+                        <input id="searchInput" class="form-control me-2 border-2" type="search"
+                            placeholder="Search by name ..." aria-label="Search">
+                        <span id="clearSearch" class="clear-search">
+                            &times;
+                        </span>
+
+                    </div>
+                    <button class="search-button btn btn-outline-primary border-2"
+                        type="submit"><strong>Search</strong></button>
+                </form>
+            </div>
+        </div>
+
 
     </div>
     <div id="overview-container" class="container mt-4">
@@ -60,8 +74,8 @@
     </div>
 
     <div class="load-more">
-        <button class="btn btn-outline-primary mt-4 mx-auto col-2" id="load-more-button">Load
-            More</button>
+        <button class="btn btn-outline-primary mt-4 mx-auto col-2 border-2" id="load-more-button"><strong>Load
+                More</strong></button>
     </div>
 
 

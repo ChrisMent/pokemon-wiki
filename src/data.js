@@ -17,7 +17,7 @@ export async function fetchPokemonFullList() {
         });
 
         allPokemonsList = allPokemons;
-        console.log("All Pokémon List:", allPokemonsList);
+        //console.log("All Pokémon List:", allPokemonsList);
     } catch (error) {
         console.error("Error fetching pokemon base data:", error);
     } 

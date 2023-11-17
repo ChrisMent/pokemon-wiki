@@ -1,10 +1,45 @@
 import { renderOverview } from './render.js';
 
 export let allPokemonData = [];
+export let renderedPokemonCount = 0; // Initialisieren Sie die Variable
+export let isInitialLoad = true;
 
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 25;
+let limit = 20;
 let offset = 0;
+
+export function incrementRenderedPokemonCount() {
+    renderedPokemonCount++;
+    //console.log(`renderedPokemonCount nach Inkrement: ${renderedPokemonCount}`);
+}
+
+export function resetRenderedPokemonCount() {
+    renderedPokemonCount = 0;
+    //console.log(`renderedPokemonCount nach Reset: ${renderedPokemonCount}`);
+}
+
+export function getCurrentRenderedPokemonCount() {
+    return renderedPokemonCount;
+}
+
+export async function resetAndLoadInitialPokemons() {
+    offset = 0; // Setze den Offset zurück
+    allPokemonData = []; // Leere das bestehende Pokémon-Array
+    isInitialLoad = true;
+    const pokemonContainer = document.getElementById('pokemon-container');
+    if (pokemonContainer) {
+        pokemonContainer.innerHTML = ''; // Leere den Container
+    }
+    await fetchPokemonsBaseData(); // Lade die initialen Pokémon
+
+    for (const pokemon of allPokemonData) {
+        await fetchPokemonsSpecies(pokemon);
+        await fetchPokemonsMovesDetails(pokemon);
+    }
+
+    updateUIWithNewPokemons(allPokemonData); // Aktualisiere die UI
+}
+
 
 // Funktion, um den Ladeindikator anzuzeigen
 export function showLoadingIndicator() {
@@ -20,35 +55,56 @@ export function hideLoadingIndicator() {
 
 // Funktion zum Laden mehrerer Pokémon
 export async function loadMorePokemons() {
+    isInitialLoad = false;
     offset += limit; // Erhöhe den Offset um das Limit, um die nächsten Pokémon zu laden
-    await fetchPokemonsBaseData();
-    // Hier würden Sie die Funktion aufrufen, die die UI aktualisiert, z.B.:
-    updateUIWithNewPokemons(allPokemonData.slice(-limit)); // Aktualisiere die UI mit den letzten 20 geladenen Pokémon
+
+    await fetchPokemonsBaseData(); // Lade Basisdaten für die nächsten Pokémon
+
+    const startIndex = allPokemonData.length - limit; // Bestimme den Startindex der neu hinzugefügten Pokémon
+
+    // Lade Detaildaten für alle Pokémon, optimiert, um nur für neue Pokémon zu laden
+    await fetchPokemonsDetails();
+
+    // Warten auf das Laden von Speziesdaten und Bewegungsdetails für jedes neu geladene Pokémon
+    const newPokemonsPromises = allPokemonData.slice(startIndex).map(async pokemon => {
+        // Hier könnte eine Bedingung hinzugefügt werden, um sicherzustellen, dass es nicht mehrmals aufgerufen wird
+        // wenn diese Daten bereits vorhanden sind, ähnlich wie bei fetchPokemonsDetails
+        await fetchPokemonsSpecies(pokemon);
+        await fetchPokemonsMovesDetails(pokemon);
+    });
+
+    await Promise.all(newPokemonsPromises);
+
+    // Überprüfe das gesamte Array nach den Aktualisierungen
+    console.log("allPokemonData after updates", allPokemonData);
+
+    // Die neuen Pokémon sind die letzten im Array
+    const newPokemons = allPokemonData.slice(-limit);
+
+    // Aktualisiere die UI mit den neuen Pokémon inklusive Details
+    updateUIWithNewPokemons(newPokemons);
+
+    hideLoadingIndicator(); // Verstecke den Ladeindikator
 }
 
+
 // Funktion zum Aktualisieren der UI mit neuen Pokémon-Daten
-export function updateUIWithNewPokemons(newPokemonData) {
+export async function updateUIWithNewPokemons(newPokemonData) {
+    
+    let localTotalPokemonCount = newPokemonData.length; // Lokale Gesamtanzahl für diese spezifische Ladung
+    renderedPokemonCount = 0; // Rücksetzen des gerenderten Pokémon-Zählers
+    
+    console.log("newPokemonData", newPokemonData); // Gesamte Datenstruktur ausgeben
+
     const pokemonContainer = document.getElementById('pokemon-container');
     if (!pokemonContainer) {
         console.error('Das Element mit der ID "pokemon-container" wurde nicht gefunden.');
         return;
     }
-    newPokemonData.forEach(pokemon => {
-        renderOverview(pokemon); // Verwenden Sie die bestehende Funktion, um die Karten zu rendern
-    });
-}
-
-
-// Funktion zum Erstellen eines neuen Pokémon-Elements
-function createPokemonElement(pokemon) {
-    const pokemonElement = document.createElement('div');
-    pokemonElement.className = 'pokemon'; // Fügen Sie hier Ihre eigenen Klassen hinzu
-    pokemonElement.innerHTML = `
-        <h3>${pokemon.name}</h3>
-        <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
-        <!-- Weitere Pokémon-Informationen hier einfügen -->
-    `;
-    return pokemonElement;
+    for (const pokemon of newPokemonData) {
+        console.log("Einzelnes Pokémon-Objekt", pokemon); // Struktur eines einzelnen Pokémon-Objekts
+        await renderOverview(pokemon, localTotalPokemonCount);
+    }
 }
 
 export async function fetchPokemonsBaseData() {
@@ -91,25 +147,34 @@ function correctSpriteUrl(url) {
 
 
 
-  export async function fetchPokemonsDetails() {
+export async function fetchPokemonsDetails() {
     // Parallele Anfragen für Pokemon Details
-    const detailPromises = allPokemonData.map(pokemon =>
+    const detailPromises = allPokemonData.map((pokemon, index) =>
         fetchPokemonDetail(pokemon.url)
-        
+        .then(detail => {
+            // Nur wenn das Pokémon noch keine ausführlichen Details hat, füge sie hinzu
+            if (!('details' in allPokemonData[index])) {
+                allPokemonData[index] = {...allPokemonData[index], ...detail};
+            }
+        })
+        .catch(error => {
+            console.error(`Error fetching pokemon detail for: ${pokemon.name}`, error);
+        })
     );
 
     try {
-        const details = await Promise.all(detailPromises);
-        details.forEach((detail, i) => {
-            if (detail) { // Stellen Sie sicher, dass die Details nicht null sind
-                allPokemonData[i] = { ...allPokemonData[i], ...detail };
-            }
-        });
+        // Warte auf den Abschluss aller Detailanfragen, ohne Daten zurückzugeben,
+        // da allPokemonData bereits aktualisiert wurde.
+        await Promise.all(detailPromises);
 
-        // Parallele Anfragen für Evolutionsdaten
-        const evolutionPromises = allPokemonData.map(pokemon =>
-            getEvolutionDataForPokemon(pokemon.name).catch(error => {
-                console.error("Error fetching evolution data for", pokemon.name, ":", error);
+        // Parallele Anfragen für Evolutionsdaten nur für Pokémon ohne Evolutionsdaten,
+        // Filter Pokemon heraus die bereits Evolutionsdaten haben
+        const pokemonsWithoutEvolutions = allPokemonData.filter(pokemon => !pokemon.evolutionData);
+
+        const evolutionPromises = pokemonsWithoutEvolutions.map(pokemon =>
+            getEvolutionDataForPokemon(pokemon.name)
+            .catch(error => {
+                console.error(`Error fetching evolution data for: ${pokemon.name}`, error);
                 return null; // Um zu vermeiden, dass das gesamte Promise.all scheitert
             })
         );
@@ -117,14 +182,17 @@ function correctSpriteUrl(url) {
         const evolutionData = await Promise.all(evolutionPromises);
         evolutionData.forEach((evolution, i) => {
             if (evolution) {
-                allPokemonData[i].evolutionData = evolution;
+                const pokemonIndex = allPokemonData.findIndex(pokemon => pokemon.name === pokemonsWithoutEvolutions[i].name);
+                if (pokemonIndex !== -1) {
+                    allPokemonData[pokemonIndex].evolutionData = evolution;
+                }
             }
         });
 
     } catch (error) {
         console.error("Error fetching pokemon details:", error);
     }
-    // Sie brauchen keine Daten zurückzugeben, da allPokemonData global ist
+    // Sie brauchen keine Daten zurückzugeben, da allPokemonData global ist und bereits aktualisiert wurde
 }
 
 export async function fetchPokemonDetail(url) {
@@ -246,10 +314,21 @@ export async function fetchPokemonsMovesDetails(pokemon) {
 
         // Bereinige movesBaseData
         delete pokemon.movesBaseData;
+
+        // Aktualisieren Sie das allPokemonData-Array
+        let pokemonIndex = allPokemonData.findIndex(p => p.name === pokemon.name);
+        if (pokemonIndex !== -1) {
+            allPokemonData[pokemonIndex] = { ...allPokemonData[pokemonIndex], ...pokemon };
+        } else {
+            console.error("Pokemon not found in allPokemonData:", pokemon.name);
+        }
+
     } catch (error) {
         console.error("Error processing moves details:", error);
     }
 }
+
+
 
 
 async function fetchMoveDetails(moveBaseData) {
@@ -275,22 +354,34 @@ async function fetchMoveDetails(moveBaseData) {
 }
 
 export async function fetchPokemonsSpecies(pokemon) {
+    console.log("fetchPokemonsSpecies called for", pokemon.name); // Hinzugefügt
     // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die speciesUrl enthält
     if (!pokemon || !pokemon.details || !pokemon.details.speciesUrl) {
         return; // Keine Daten vorhanden, also frühzeitig beenden
     }
-    
+
     try {
         // Rufen Sie die Artendaten für das einzelne Pokémon ab
         const species = await fetchPokemonSpecies(pokemon.details.speciesUrl);
         
         if (species) {
+            console.log("Species data fetched for", pokemon.name, species); // Hinzugefügt
+            // Aktualisieren Sie das übergebene Pokémon-Objekt mit den neuen Speziesdaten
             pokemon.details = { ...pokemon.details, ...species };
+
+            // Aktualisieren Sie das allPokemonData-Array
+            let pokemonIndex = allPokemonData.findIndex(p => p.name === pokemon.name);
+            if (pokemonIndex !== -1) {
+                allPokemonData[pokemonIndex] = { ...allPokemonData[pokemonIndex], ...pokemon };
+            } else {
+                console.error("Pokemon not found in allPokemonData:", pokemon.name);
+            }
         }
     } catch (error) {
         console.error("Error fetching species data for", pokemon.name, ":", error);
     }
 }
+
 
 async function fetchPokemonSpecies(speciesUrl) {
 
@@ -406,7 +497,7 @@ async function updateEvolutionThumbnails(evolution) {
 
 export async function getEvolutionDataForPokemon(pokemonId) {
     try {
-        console.log('Abrufen der Evolutionsdaten für Species ID', pokemonId);
+        //console.log('Abrufen der Evolutionsdaten für Species ID', pokemonId);
 
         // Zuerst die Pokémon-Spezies-URL abrufen, um die Evolutionskette-URL zu erhalten
         const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}/`);
@@ -414,7 +505,7 @@ export async function getEvolutionDataForPokemon(pokemonId) {
             throw new Error(`HTTP error! status: ${speciesResponse.status}`);
         }
         const speciesData = await speciesResponse.json();
-        console.log('Species-Daten:', speciesData);
+        //console.log('Species-Daten:', speciesData);
         const evolutionChainUrl = speciesData.evolution_chain.url;
 
         // Evolutionskette abrufen
@@ -423,19 +514,19 @@ export async function getEvolutionDataForPokemon(pokemonId) {
             throw new Error(`HTTP error! status: ${evolutionResponse.status}`);
         }
         const evolutionData = await evolutionResponse.json();
-        console.log('Evolutionskettendaten:', evolutionData);
+        //console.log('Evolutionskettendaten:', evolutionData);
 
         // Extrahieren Sie die Evolutionskette
         const evolutionChain = extractEvolutionChain(evolutionData.chain);
-        console.log('Extrahierte Evolutionskette:', evolutionChain);
+        //console.log('Extrahierte Evolutionskette:', evolutionChain);
 
         // Rekursiv die Thumbnails für die gesamte Evolutionskette aktualisieren
         await updateEvolutionThumbnails(evolutionChain);
-        console.log('Aktualisierte Evolutionskette mit Thumbnails:', evolutionChain);
+        //console.log('Aktualisierte Evolutionskette mit Thumbnails:', evolutionChain);
 
         // Konvertieren Sie die rekursive Evolutionskette in ein flaches Array
         const flatEvolutionArray = flattenEvolutionChain(evolutionChain);
-        console.log('Flache Evolutionskette:', flatEvolutionArray);
+        //console.log('Flache Evolutionskette:', flatEvolutionArray);
 
         return flatEvolutionArray;
 

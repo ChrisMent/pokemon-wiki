@@ -4,9 +4,7 @@ body {
 }
 
 .base-wrapper {
-  display: flex;
-  justify-content: center; /* Zentriert den Inhalt horizontal */
-  align-items: center; /* Optional: Zentriert den Inhalt vertikal, falls gewünscht */
+  width: 100%;
 }
 
 .head {
@@ -30,23 +28,41 @@ body {
 }
 
 .search-container {
-  width: 500px !important;
-  max-width: 500px !important;
-  --bs-gutter-x: 1.5rem;
-  --bs-gutter-y: 0;
-  width: 100%;
-  padding-right: calc(var(--bs-gutter-x) * 0.5);
-  padding-left: calc(var(--bs-gutter-x) * 0.5);
+  width: 100% !important;
   margin-right: auto;
   margin-left: auto;
-}
-
-.form-control {
-  flex: 2 1 0; /* flex-grow flex-shrink flex-basis */
+  position: relative;
 }
 
 .search-button {
-  flex: 1 1 0;
+  flex-grow: 1;
+}
+
+#input-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex-grow: 1;
+}
+
+/* Verstecken des browser-spezifischen "X" */
+input[type="search"]::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear-search {
+  cursor: pointer;
+  position: absolute;
+  right: 20px; /* Abstand vom rechten Rand des Eingabefeldes */
+  top: 50%;
+  transform: translateY(-50%); /* Zentriert das Symbol vertikal */
+  color: gray; /* Grundfarbe des "X" */
+  font-size: 20px; /* Größe des "X" */
+}
+
+#input-container:focus-within .clear-search {
+  color: rgb(29, 29, 255); /* Farbe des "X" beim Fokus */
+  text-shadow: 0 0 10px rgba(29, 29, 255, 0.6); /* Glüheffekt */
 }
 
 /*** Overview Page ****/
@@ -343,11 +359,25 @@ hr {
   border: none;
   background: transparent;
   color: #fff;
+  z-index: 10000;
+  margin-left: -5px;
 }
 
 .load-more {
   display: flex;
   justify-content: center;
+}
+
+.arrow-back,
+.arrow-forward {
+  width: 64px !important;
+  margin-top: -44px;
+}
+
+.bg-arrow {
+  background-color: rgba(255, 255, 255, 0.5);
+  height: 120px;
+  border-radius: 20px;
 }
 
 /*** Responsive Design ****/
@@ -364,9 +394,8 @@ hr {
     width: 350px !important;
   }
 
-  .search-container {
-    width: 350px !important;
-    max-width: 350px !important;
+  #search-form {
+    flex-direction: column;
   }
 
   .overview-columns {
@@ -463,11 +492,6 @@ hr {
 
 @media (max-width: 349px) {
   .container {
-    max-width: 300px !important;
-  }
-
-  .search-container {
-    width: 300px !important;
     max-width: 300px !important;
   }
 

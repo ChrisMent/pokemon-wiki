@@ -1,5 +1,5 @@
 import { lightenColor, getBackgroundColor, capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
-import { hideLoadingIndicator, allPokemonData } from './api.js';
+import { hideLoadingIndicator, allPokemonData, incrementRenderedPokemonCount, resetRenderedPokemonCount, getCurrentRenderedPokemonCount, isInitialLoad, renderedPokemonCount } from './api.js';
 import { initModal, applyFilters } from './modal.js';
 
 // Die Funktion renderAllPokemon() ist als Hilfsfunktion gedacht, die die renderOverview() - Funktion für jedes Pokémon-Objekt in dem Array = allPokemonData (api.js) aufruft. 
@@ -8,74 +8,67 @@ import { initModal, applyFilters } from './modal.js';
 // --> Parameter allPokemonData ist das Array aus api.js
 
 export function renderAllPokemon(allPokemonData) {
-    
     const pokemonContainer = document.getElementById("pokemon-container");
-    pokemonContainer.innerHTML = '';  // Leert den Container
+    pokemonContainer.innerHTML = '';
 
-    // for...of Schleife, es wird über jedes Element im Array allPokemonData iteriert und die Werte in pokemonData gespeichert. Das wird solange gemacht bis das letzte Element erreicht wurde.
     for (let pokemonData of allPokemonData) {
-        // Erstelle ein neues Objekt mit den erforderlichen Daten auf der obersten Ebene
-        const pokemonDataForRendering = {
-            ...pokemonData.details,
-            movesBaseData: pokemonData.movesBaseData,
-            evolutionData: pokemonData.evolutionData,
-        };
-        renderOverview(pokemonDataForRendering);
+        renderOverview(pokemonData);
     }
 }
-
-let renderedPokemonCount = 0;
 
 // Diese Funktion ist für ein einzelnes Pokémon-Objekt gedacht
-export function renderOverview(pokemonData) {
+export function renderOverview(pokemonData, localTotalPokemonCount) {
+    // Extrahieren Sie die relevanten Daten basierend auf der Struktur
+    const data = pokemonData.details ? pokemonData.details : pokemonData;
 
-    // Damit der Spinner erst ausgeblendet wird wenn das letzte Pokemon gerendert wurde
+    //console.log('pokemonData:', data);
+    //console.log('types:', data.types);
+    //console.log('sprites:', data.sprites);
 
-    let totalPokemonCount = allPokemonData.length
-    
-    // Überprüfe, ob pokemonData und pokemonData.types definiert sind
-    if (!pokemonData || !pokemonData.types || !pokemonData.sprites) {
+    // Überprüfen, ob die erforderlichen Daten vorhanden sind
+    if (!data || !data.types || !data.sprites) {
         console.error('Pokemon-Daten fehlen oder sind unvollständig:', pokemonData);
+        // Hier können Sie entscheiden, ob Sie eine Ladeanzeige rendern wollen.
         return; // Beendet die Funktion frühzeitig, um Fehler zu vermeiden
     }
-    
+
     const pokemonContainer = document.getElementById("pokemon-container");
-    
-   // Setzen der Hintergrundfarbe je nach dem ersten Pokemon-Typ
-    const bgColor = getBackgroundColor(pokemonData.types[0]);
+
+    // Setzen der Hintergrundfarbe je nach dem ersten Pokemon-Typ
+    const bgColor = getBackgroundColor(data.types[0]);
 
     // Fügen des HTML-Inhalts zum Container hinzu
-    //console.log(pokemonData.sprites);
     pokemonContainer.innerHTML += `
-<div class="col-6 col-lg-3">
-    <a href="${pokemonData.name}" class="pokemon-link" style="text-decoration: none; color: inherit;">
-        <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}; cursor: pointer;">
-            <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
-            <h3 class="pokemon-name">${capitalizeEachWord(pokemonData.name)}</h3>
-            <div class="overview-columns">
-                <div class="overview-badges">
-                    <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[0])}</span>
-                    ${pokemonData.types[1] ? `<span class="overview-badge badge rounded-pill" style="background-color: ${lightenColor(bgColor, 10)}">${capitalizeEachWord(pokemonData.types[1])}</span>` : ''}
-                </div>
-                <div class="overview-img-container">
-                    <img class="overview-img" src="${pokemonData.sprites}" alt="Pokemon Monster Image">
+    <div class="col-6 col-lg-3">
+        <a href="${data.name}" class="pokemon-link" style="text-decoration: none; color: inherit;">
+            <div class="overview-card p-3 border rounded-4" style="background-color: ${bgColor}; cursor: pointer;">
+                <img class="overview-background" src="/pokemon-wiki/img/poke_ball_icon.svg" alt="Pokeball Icon">
+                <h3 class="pokemon-name">${capitalizeEachWord(data.name)}</h3>
+                <div class="overview-columns">
+                    <div class="overview-badges">
+                        <span class="overview-badge badge rounded-pill" style="background-color:${lightenColor(bgColor, 10)}">${capitalizeEachWord(data.types[0])}</span>
+                        ${data.types[1] ? `<span class="overview-badge badge rounded-pill" style="background-color: ${lightenColor(bgColor, 10)}">${capitalizeEachWord(data.types[1])}</span>` : ''}
+                    </div>
+                    <div class="overview-img-container">
+                        <img class="overview-img" src="${data.sprites}" alt="Pokemon Monster Image">
+                    </div>
                 </div>
             </div>
-        </div>
-    </a>
-</div>
+        </a>
+    </div>
     `;
-      // Inkrementiere den Zähler für gerenderte Pokémon
-      renderedPokemonCount++;  
 
-    //console.log('renderedPokemonCount', renderedPokemonCount)
-    
-    // Wenn alle Pokémon gerendert wurden, verstecke den Ladeindikator
-    if (renderedPokemonCount === totalPokemonCount) {
+
+    // Inkrementiere den Zähler für gerenderte Pokémon
+    incrementRenderedPokemonCount();
+
+    // Ändern der Bedingung für das Ausblenden des Spinners
+    if ((isInitialLoad && renderedPokemonCount === allPokemonData.length) ||
+        (!isInitialLoad && renderedPokemonCount === localTotalPokemonCount)) {
         hideLoadingIndicator();
-        renderedPokemonCount = 0; // Setze den Zähler zurück
     }
 }
+
 
 export function generateEvolutionHTML(evolutionChain) {
     let htmlContent = '';  // Initialisieren Sie die Variablen

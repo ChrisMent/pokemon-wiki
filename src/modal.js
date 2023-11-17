@@ -5,6 +5,7 @@ import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
 import { generateEvolutionHTML, renderMoves, updateTableHeader  } from './render.js';
 import { lightenColor, getBackgroundColor, formatNumber } from './utils.js';
 import { capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
+import { isSearchActive } from './search.js';
 
 // Variable, um den Status des Modals zu verfolgen
 let isModalOpen = false;
@@ -22,12 +23,24 @@ function closeTheModal() {
     const modal = document.getElementById('pokemonModal');
     modal.style.display = "none";
     isModalOpen = false;
+
+    // Anpassung des "Load More" Buttons beim Schließen des Modals
+    const loadMoreButton = document.querySelector('.load-more');
+    if (!isSearchActive) {
+        loadMoreButton.style.display = 'flex';
+    }
 }
 
 // Hauptfunktion zum Initialisieren des Modals
 
 export async function initModal() {
     const pokemonListContainer = document.getElementById('overview-container');
+
+    // "Load More" Button ausblenden, wenn eine Suche aktiv ist
+    const loadMoreButton = document.querySelector('.load-more');
+    if (isSearchActive) {
+        loadMoreButton.style.display = 'none';
+    }
 
     pokemonListContainer.addEventListener('click', async function(e) {
         const link = e.target.closest('.pokemon-link');
@@ -107,10 +120,8 @@ export async function initModal() {
 
             // Event-Listener für das Schließen des Modals hinzufügen
             const closeModalButton = document.getElementById('closeModal');
-            if (closeModalButton) {
-                closeModalButton.removeEventListener('click', closeTheModal);
-                closeModalButton.addEventListener('click', closeTheModal);
-            }
+            closeModalButton.addEventListener('click', closeTheModal);
+            
 
         } catch (error) {
             console.error("Error loading modal content:", error);
@@ -274,8 +285,13 @@ function replaceValues(modalContent, pokemonData) {
     }
     //console.log('Selected Pokemon:', selectedPokemon);
     //console.log('Details:', selectedPokemon.details);
-    const capitalizedEggGroups = details.eggGroups.map(eggGroups => capitalizeEachWord(eggGroups))
-    modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
+    
+    if (details && details.eggGroups) {
+        const capitalizedEggGroups = details.eggGroups.map(eggGroup => capitalizeEachWord(eggGroup));
+        // ... weitere Logik
+        modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
+    }
+    
     
     modalContent = modalContent.replace('{{captureRate}}', details.captureRate);
     

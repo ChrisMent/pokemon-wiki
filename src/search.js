@@ -1,14 +1,19 @@
-import { allPokemonData, fetchPokemonDetail, fetchPokemonsMovesDetails , fetchPokemonsSpecies, getEvolutionDataForPokemon, updateUIWithNewPokemons } from './api.js';
+import { allPokemonData, fetchPokemonDetail, fetchPokemonsMovesDetails , fetchPokemonsSpecies, getEvolutionDataForPokemon, updateUIWithNewPokemons, resetAndLoadInitialPokemons, showLoadingIndicator, hideLoadingIndicator } from './api.js';
 import { renderAllPokemon } from './render.js'; 
 import { allPokemonsList } from './data.js';
 import { initModal } from './modal.js';
 import { getBackgroundColor } from './utils.js'
+
+
+// Zustandsvariable für aktive Suche
+export let isSearchActive = false;
 
 // Eventhandling
 
 document.addEventListener("DOMContentLoaded", function() {
     const searchInput = document.querySelector('.form-control');
     const searchButton = document.querySelector('.search-button');
+    const loadMoreButton = document.querySelector('.load-more')
     
     // Event-Listener für die Eingabetaste im Suchfeld
     searchInput.addEventListener('keypress', async (event) => {
@@ -20,12 +25,36 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // Event-Listener für das Fokussieren und Verlassen des Suchfelds
+    searchInput.addEventListener('focus', function() {
+    // "Load More" Button ausblenden, wenn das Suchfeld fokussiert wird
+    loadMoreButton.style.display = 'none';
+    });
+    
+    searchInput.addEventListener('blur', function() {
+        if (!isSearchActive) {
+            loadMoreButton.style.display = 'flex';
+        }
+    });
+
     // Event-Listener für den Such-Button
     searchButton.addEventListener('click', handleSearchButtonClick); // click Event-Listener hinzufügen
         
-    // Event-Listener für den Close-Button dynamisch hinzufügen
+    // Event-Listener für den Close-Button dynamisch hinzufügen wenn kein Pokemon gefunden wurde! oder das löschen der Suche
     document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('btn-close')) {
+        if (event.target.classList.contains('btn-close') || event.target.id === 'clearSearch') {
+            clearNoPokemons();
+        }
+    });
+
+    document.getElementById('clearSearch').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        // Führen Sie hier zusätzliche Aktionen aus, z.B. die Suchergebnisse zurücksetzen
+    });
+
+    // Event-Listener für Änderungen im Suchfeld
+    searchInput.addEventListener('input', function(event) {
+        if (event.target.value.trim() === '') {
             clearNoPokemons();
         }
     });
@@ -34,9 +63,11 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
+
 // Funktion, die bei Klick auf den Suchbutton aufgerufen wird
 function handleSearchButtonClick(e) {
     e.preventDefault();
+    isSearchActive = true; // Setze die Suche als aktiv
     performSearch();
 }
 
@@ -44,8 +75,16 @@ function handleSearchButtonClick(e) {
 
 function clearNoPokemons(){
     const searchInput = document.querySelector('.form-control');
-    searchInput.value = ''
-    renderAllPokemon(allPokemonData)
+    searchInput.value = '';
+    isSearchActive = false; // Setze die Suche als nicht aktiv
+    resetAndLoadInitialPokemons();
+
+    const nothingFound = document.getElementById('info-message');
+    nothingFound.innerHTML = ''; // Leere die nothingFound-Nachricht
+    
+    const loadMoreButton = document.querySelector('.load-more');
+    loadMoreButton.style.display = 'flex';
+    
 }
 
 // Globale Variable für die letzte Suchanfrage
@@ -67,13 +106,18 @@ function searchDebounce(func, wait) {
 };
 
 // Event-Listener für das Suchfeld
-document.querySelector('.form-control').addEventListener('input', searchDebounce(performSearch, 3000));
+document.querySelector('.form-control').addEventListener('input', searchDebounce(performSearch, 300));
 
 // Exportieren der Haupt-Suchfunktion
 export async function performSearch() {
+    showLoadingIndicator(); // Zeige den Spinner beim Start der Suche
+    const loadMoreButton = document.querySelector('.load-more')
+    loadMoreButton.style.display = 'none';
     const searchInput = document.querySelector('.form-control');
     const searchQuery = searchInput.value.trim().toLowerCase();
+    const pokemonContainer = document.getElementById("pokemon-container");
     lastQuery = searchQuery;
+    isSearchActive = true; 
 
     const nothingFound = document.getElementById('info-message');
     nothingFound.innerHTML = '';
@@ -92,6 +136,8 @@ export async function performSearch() {
 
         // Warten auf das Ergebnis der Suchanfrage
         const { searchQuery: responseQuery, searchResults } = await searchPromise;
+
+        hideLoadingIndicator(); // Verstecke den Spinner nach Abschluss der Suche
 
         // Stellen Sie sicher, dass dies die aktuellste Suchanfrage ist
         if (responseQuery === lastQuery && currentSearchPromise === searchPromise) {
@@ -112,7 +158,8 @@ export async function performSearch() {
                     Zu deiner Suche wurde leider kein Pokemon gefunden!
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>`;
-                searchResultList.innerHTML = '';
+                pokemonContainer.innerHTML = ''
+                hideLoadingIndicator(); // Verstecke den Spinner auch hier, falls nötig
             }
         }
     } else {
