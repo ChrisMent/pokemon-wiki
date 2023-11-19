@@ -45,7 +45,6 @@ export async function initModal() {
     pokemonListContainer.addEventListener('click', async function(e) {
         const link = e.target.closest('.pokemon-link');
         if (!link) return;
-
         e.preventDefault();
         const hrefAttribute = link.getAttribute('href');
         if (!hrefAttribute) {
@@ -54,12 +53,12 @@ export async function initModal() {
         }
 
         const pokemonName = hrefAttribute.split('/').pop().toLowerCase();
-        console.log('Klick auf Pokémon:', pokemonName);
+        //console.log('Klick auf Pokémon:', pokemonName);
         
        
         const selectedPokemon = allPokemonData.find(pokemon => pokemon.name && pokemon.name.toLowerCase() === pokemonName.toLowerCase());
 
-        console.log('selectedPokemon:', selectedPokemon);
+        //console.log('selectedPokemon:', selectedPokemon);
 
         if (!selectedPokemon) {
             console.error(`Daten für ${pokemonName} nicht gefunden.`);
@@ -90,13 +89,26 @@ export async function initModal() {
                 }
             });
 
+            // Ermitteln des Index des ausgewählten Pokémon
+            const selectedIndex = allPokemonData.findIndex(pokemon => pokemon.name.toLowerCase() === pokemonName.toLowerCase());
+            console.log('Index des ausgewählten Pokémon:', selectedIndex);
+
+            // Event-Listener für die Pfeile hinzufügen
+            const arrowLeft = document.querySelector('.arrow-back');
+            const arrowRight = document.querySelector('.arrow-forward');
+
+            arrowLeft.addEventListener('click', () => changePokemon(selectedIndex, 'previous'));
+            arrowRight.addEventListener('click', () => changePokemon(selectedIndex, 'next'));
+
             const progressBarTotal = document.querySelector('.total');
             progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
             progressBarTotal.style.backgroundColor = '#faae0b';
 
             // Hintergrundfarbe für das erste Kartenelement setzen
             const cardFirstSec = document.getElementById('card-first-sec');
-            console.log('Selected Pokemon Details:', selectedPokemon.details);
+            
+            //console.log('Selected Pokemon Details:', selectedPokemon.details);
+
             if (selectedPokemon.details && selectedPokemon.details.types && selectedPokemon.details.types[0]) {
                 const bgColor = getBackgroundColor(selectedPokemon.details.types[0]);
                 console.log('Background color:', bgColor);
@@ -127,6 +139,98 @@ export async function initModal() {
             console.error("Error loading modal content:", error);
         }
     });
+
+    async function changePokemon(currentIndex, direction) {
+        let newIndex;
+        if (direction === 'next') {
+            newIndex = (currentIndex + 1) % allPokemonData.length;
+        } else if (direction === 'previous') {
+            newIndex = currentIndex - 1;
+            if (newIndex < 0) {
+                newIndex = allPokemonData.length - 1;
+            }
+        } else {
+            console.error('Unbekannte Richtung:', direction);
+            return;
+        }
+    
+        await updateModalContent(newIndex);
+    }
+    
+
+    async function updateModalContent(pokemonIndex) {
+        // Ermitteln der neuen Pokémon-Daten
+        const newPokemonData = allPokemonData[pokemonIndex];
+    
+        if (!newPokemonData) {
+            console.error("Keine Daten für den Index gefunden:", pokemonIndex);
+            return;
+        }
+    
+        try {
+            // Ersetzen des Inhalts im Modal mit neuen Daten
+            const responseModal = await fetch('modal.html');
+            if (!responseModal.ok) {
+                throw new Error(`HTTP error! status: ${responseModal.status}`);
+            }
+            let textResponseModal = await responseModal.text();
+            textResponseModal = replaceValues(textResponseModal, newPokemonData);
+            document.querySelector('.modal-content').innerHTML = textResponseModal;
+    
+            // Setzen der Breite und Farbe der Fortschrittsbalken
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(progressBar => {
+                const widthValue = parseFloat(progressBar.dataset.width);
+                progressBar.style.width = widthValue + '%';
+                if (widthValue > 50) {
+                    progressBar.style.backgroundColor = '#6DCD95';
+                } else {
+                    progressBar.style.backgroundColor = '#FDA2A2';
+                }
+            });
+    
+            // Hintergrundfarbe für das erste Kartenelement setzen
+            const cardFirstSec = document.getElementById('card-first-sec');
+            if (newPokemonData.details && newPokemonData.details.types && newPokemonData.details.types[0]) {
+                const bgColor = getBackgroundColor(newPokemonData.details.types[0]);
+                cardFirstSec.style.backgroundColor = bgColor;
+            }
+    
+            // Evolutionsdaten abrufen und HTML generieren
+            const evolutionData = await getEvolutionDataForPokemon(newPokemonData.name);
+            const evolutionHTML = generateEvolutionHTML(evolutionData);
+            document.getElementById('evolutionContent').innerHTML = evolutionHTML;
+    
+            // Dropdown- und Navigationsereignisse überwachen
+            watchDropdown(newPokemonData.movesDetails);
+            watchNavigationMenu(newPokemonData.movesDetails);
+            applyFilters(newPokemonData.movesDetails);
+
+            // Zeigt das Modal an und setzt den Zustand auf offen
+            const modal = document.getElementById('pokemonModal');
+            modal.style.display = "block";
+            isModalOpen = true;
+            
+            // Event-Listener für das Schließen des Modals hinzufügen
+            const closeModalButton = document.getElementById('closeModal');
+            closeModalButton.addEventListener('click', closeTheModal);
+    
+            // Aktualisieren des Event-Listeners für die Pfeile
+            const arrowLeft = document.querySelector('.arrow-back');
+            const arrowRight = document.querySelector('.arrow-forward');
+    
+            arrowLeft.addEventListener('click', () => changePokemon(pokemonIndex, 'previous'));
+            arrowRight.addEventListener('click', () => changePokemon(pokemonIndex, 'next'));
+    
+        } catch (error) {
+            console.error("Fehler beim Aktualisieren des Modalinhalts:", error);
+        }
+    }
+    
+    
+    
+
+    
 
     // Event-Listener für Klicks außerhalb des Modals hinzufügen
     window.removeEventListener('click', handleOutsideClick); // Entfernen Sie das alte Ereignis, falls es existiert

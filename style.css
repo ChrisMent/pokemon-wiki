@@ -28,14 +28,14 @@ body {
 }
 
 .search-container {
-  width: 100% !important;
+  width: 650px !important;
   margin-right: auto;
   margin-left: auto;
   position: relative;
 }
 
 .search-button {
-  flex-grow: 1;
+  width: 220px;
 }
 
 #input-container {
@@ -368,21 +368,57 @@ hr {
   justify-content: center;
 }
 
-.arrow-back,
-.arrow-forward {
-  width: 64px !important;
-  margin-top: -44px;
-}
-
-.bg-arrow {
+.bg-arrow-left,
+.bg-arrow-right {
   background-color: rgba(255, 255, 255, 0.5);
   height: 120px;
-  border-radius: 20px;
+  border-radius: 13px;
+  position: absolute;
+  top: 62%;
+  transform: translateY(-50%);
+  width: 42px;
+  z-index: 20000;
+  cursor: pointer;
+}
+
+.bg-arrow-left {
+  left: 26px; /* Passen Sie diesen Wert an, um das Padding von `#card-first-sec` zu berücksichtigen */
+}
+
+.bg-arrow-right {
+  right: 26px; /* Passen Sie diesen Wert an, um das Padding von `#card-first-sec` zu berücksichtigen */
+}
+
+.arrow-adjust {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.arrow-back,
+.arrow-forward {
+  width: 60px !important;
+}
+
+.load-more-button {
+  width: 200px;
 }
 
 /*** Responsive Design ****/
 
-@media (min-width: 500px) {
+@media (max-width: 768px) {
+  .search-container {
+    width: 100% !important;
+    margin-right: auto;
+    margin-left: auto;
+    position: relative;
+  }
+
+  .search-button {
+    flex-grow: 1;
+    width: 0;
+  }
 }
 
 @media (max-width: 499px) {
@@ -395,7 +431,19 @@ hr {
   }
 
   #search-form {
+    display: flex;
+    justify-content: center;
     flex-direction: column;
+  }
+
+  .search-button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  #searchInput {
+    width: 100%;
+    margin-right: 0 !important;
   }
 
   .overview-columns {
@@ -499,15 +547,6 @@ hr {
     width: 300px !important;
   }
 
-  .search-container form {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .form-control {
-    margin-bottom: 10px !important;
-  }
-
   .pokemon-link {
     font-size: 0.95rem;
   }
@@ -519,11 +558,23 @@ hr {
   .dropdown-item {
     font-size: 12px;
   }
+
+  h3 {
+    hyphens: auto;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
 }
 
 @media (max-width: 289px) {
   .container {
     max-width: 300px !important;
+  }
+
+  h3 {
+    hyphens: auto;
+    word-wrap: break-word;
+    word-break: break-word;
   }
 
   .pokemon-wrapper {

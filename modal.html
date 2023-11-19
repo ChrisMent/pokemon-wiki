@@ -20,10 +20,25 @@
     <div class="container-modal col d-flex justify-content-center align-items-center mt-4">
         <div class="pokemon-wrapper card rounded-5">
             <div id="card-first-sec" class="card-body rounded-top-5 pt-4" data-bg-color="{{pokemonBackgroundColor}}">
+                <div class="arrows">
+                    <div class="bg-arrow-left">
+                        <div class="arrow-adjust">
+                            <img class="arrow-back" src="/pokemon-wiki/img/chevron-compact-left.svg"
+                                alt="Step Back Pokemon">
+                        </div>
+                    </div>
+
+                    <div class="bg-arrow-right">
+                        <div class="arrow-adjust">
+                            <img class="arrow-forward" src="/pokemon-wiki/img/chevron-compact-right.svg"
+                                alt="Step Back Pokemon">
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="first-layer d-flex justify-content-between margins">
-
                     <img id="closeModal" src="/pokemon-wiki/img/cancel.svg" alt="Close Pokemon Card">
-
                     <div class="fs-5 fw-medium">#{{pokemonID}}</div>
                 </div>
                 <div>
@@ -63,15 +78,7 @@
 
 
                 <div class="pokemon-image-container">
-                    <div class="bg-arrow">
-                        <img class="arrow-back" src="/pokemon-wiki/img/chevron-compact-left.svg"
-                            alt="Step Back Pokemon">
-                    </div>
                     <img src={{pokemonImage}} alt="main-image-pokemon">
-                    <div class="bg-arrow">
-                        <img class="arrow-forward" src="/pokemon-wiki/img/chevron-compact-right.svg"
-                            alt="Step Forward Pokemon">
-                    </div>
                 </div>
 
 

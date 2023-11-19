@@ -5,7 +5,7 @@ export let renderedPokemonCount = 0; // Initialisieren Sie die Variable
 export let isInitialLoad = true;
 
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 20;
+let limit = 3;
 let offset = 0;
 
 export function incrementRenderedPokemonCount() {
