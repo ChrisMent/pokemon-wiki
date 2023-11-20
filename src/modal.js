@@ -181,16 +181,16 @@ export async function initModal() {
             renderCardBackgroundColor(modalContentElement, newPokemonData.details.types[0]);
             renderPokemonStats(modalContentElement, newPokemonData);
             
-            // Erstellen der Daten für Fortschrittsbalken
-            const progressBars = modalContentElement.querySelectorAll('.progress-bar');
-            const progressBarsData = Array.from(progressBars).map(progressBar => {
+            const progressBarsData = Array.from(modalContentElement.querySelectorAll('.progress-bar'))
+            .map(progressBar => {
+                const dataType = progressBar.getAttribute('data-width');
+                const statValue = newPokemonData.details.baseStats[dataType];
                 return {
-                    selector: '#' + progressBar.id,
-                    width: parseFloat(progressBar.dataset.width)
+                    dataType: dataType,
+                    width: statValue
                 };
             });
-    
-            // Aufrufen von renderProgressBars mit korrekten Daten
+        
             renderProgressBars(progressBarsData, '.total');
     
             // Evolutionsdaten abrufen und HTML generieren
