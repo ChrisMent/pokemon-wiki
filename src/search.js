@@ -1,7 +1,7 @@
 import { allPokemonData, fetchPokemonDetail, fetchPokemonsMovesDetails , fetchPokemonsSpecies, getEvolutionDataForPokemon, updateUIWithNewPokemons, resetAndLoadInitialPokemons, showLoadingIndicator, hideLoadingIndicator } from './api.js';
 import { renderAllPokemon } from './render.js'; 
 import { allPokemonsList } from './data.js';
-import { initModal } from './modal.js';
+import { initModal, applyFilters } from './modal.js';
 import { getBackgroundColor } from './utils.js'
 
 
@@ -108,66 +108,68 @@ function searchDebounce(func, wait) {
 // Event-Listener für das Suchfeld
 document.querySelector('.form-control').addEventListener('input', searchDebounce(performSearch, 300));
 
-// Exportieren der Haupt-Suchfunktion
 export async function performSearch() {
     showLoadingIndicator(); // Zeige den Spinner beim Start der Suche
-    const loadMoreButton = document.querySelector('.load-more')
+    const loadMoreButton = document.querySelector('.load-more');
     loadMoreButton.style.display = 'none';
     const searchInput = document.querySelector('.form-control');
     const searchQuery = searchInput.value.trim().toLowerCase();
     const pokemonContainer = document.getElementById("pokemon-container");
     lastQuery = searchQuery;
-    isSearchActive = true; 
+    isSearchActive = true;
 
     const nothingFound = document.getElementById('info-message');
     nothingFound.innerHTML = '';
 
     if (searchQuery) {
-        // Erstellen einer neuen Suchanfrage als Promise
         const searchPromise = new Promise(async (resolve, reject) => {
-            // API-Anfrage durchführen, um Pokémon basierend auf dem Suchbegriff zu erhalten
             const searchResults = await searchPokemons(searchQuery);
             resolve({ searchQuery, searchResults });
             console.log('Erhaltene Suchergebnisse:', searchResults);
         });
 
-        // Aktualisieren der aktuellen Suchanfrage
         currentSearchPromise = searchPromise;
 
-        // Warten auf das Ergebnis der Suchanfrage
         const { searchQuery: responseQuery, searchResults } = await searchPromise;
 
-        hideLoadingIndicator(); // Verstecke den Spinner nach Abschluss der Suche
+        hideLoadingIndicator();
 
-        // Stellen Sie sicher, dass dies die aktuellste Suchanfrage ist
         if (responseQuery === lastQuery && currentSearchPromise === searchPromise) {
             if (searchResults && searchResults.length > 0) {
-                // Leeren der aktuellen allPokemonData
                 allPokemonData.length = 0;
-
-                // Hinzufügen der Suchergebnisse zu allPokemonData
                 allPokemonData.push(...searchResults);
 
-                // Aktualisieren der Benutzeroberfläche mit den neuen Daten
-                console.log('allPokemonData: ', allPokemonData)
                 renderAllPokemon(allPokemonData);
-                initModal();
+                await initModal(); // Warten, bis initModal abgeschlossen ist
+
+                const tableHeaderExists = document.getElementById('pokemon-moves-header') !== null;
+                const movesTableExists = document.getElementById('pokemon-moves') !== null;
+
+                if (tableHeaderExists && movesTableExists) {
+                    allPokemonData.forEach(pokemon => {
+                        if (pokemon.movesDetails) { // Überprüfen Sie, ob movesDetails vorhanden sind
+                            applyFilters(pokemon.movesDetails, 'sun-moon', 'level-up');
+                        }
+                    });
+                } else {
+                    console.error('Eines der erforderlichen Elemente für applyFilters fehlt im DOM.');
+                }
             } else {
                 nothingFound.innerHTML = `
-                <div class="alert alert-info m-3 text-center alert-dismissible fade show" role="alert">
-                    Zu deiner Suche wurde leider kein Pokemon gefunden!
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>`;
-                pokemonContainer.innerHTML = ''
-                hideLoadingIndicator(); // Verstecke den Spinner auch hier, falls nötig
+                    <div class="alert alert-info m-3 text-center alert-dismissible fade show" role="alert">
+                        Zu deiner Suche wurde leider kein Pokemon gefunden!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`;
+                pokemonContainer.innerHTML = '';
+                hideLoadingIndicator();
             }
         }
     } else {
-        // Standardmäßige Pokémon anzeigen, wenn die Suchleiste leer ist
         renderAllPokemon(allPokemonData.slice(0, 20));
-        initModal();
+        await initModal();
     }
 }
+
 
 
 

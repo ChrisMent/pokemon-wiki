@@ -1,0 +1,3 @@
+- set up a multilingual version
+- closing modal by clicking outside of it (requieres new strucure of model.html & index.html)
+- refactor code to get the hole data from pokemon api

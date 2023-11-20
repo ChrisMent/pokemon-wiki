@@ -249,15 +249,19 @@ export function generateEvolutionHTML(evolutionChain) {
     return htmlContent;
 }
 
-
 export function renderMoves(moves, currentLearnMethod) {
     const tableMoves = document.getElementById('pokemon-moves');
-        
-    // Hier sortieren Sie die Bewegungen basierend auf dem Level
+
+    // Überprüfe, ob das Element gefunden wurde
+    if (!tableMoves) {
+        console.error('Element "pokemon-moves" nicht gefunden.');
+        return; // Frühzeitiger Abbruch der Funktion, wenn das Element nicht existiert
+    }
+
+    // Sortieren der Bewegungen basierend auf dem Level
     moves.sort((a, b) => a.levelLearnedAt - b.levelLearnedAt);
-    
-    // Überprüfen Sie, ob die aktuelle Lernmethode eine der Methoden ist, 
-    // für die die Spalte "Level" nicht relevant ist
+
+    // Erstellen des HTML-Inhalts basierend auf den Bewegungen
     const movesHTML = moves.map(move => {
         return `
             <tr>
@@ -270,32 +274,47 @@ export function renderMoves(moves, currentLearnMethod) {
         `;
     }).join('');
 
+    // Aktualisiere das innerHTML des gefundenen Elements
     tableMoves.innerHTML = movesHTML;
 }
 
+
 export function updateTableHeader(currentLearnMethod) {
+    // Suche nach dem Element mit der ID 'pokemon-moves-header'
     const tableHeader = document.getElementById('pokemon-moves-header');
-    if (["tutor", "egg", "machine"].includes(currentLearnMethod)) {
-        tableHeader.innerHTML = `
-            <tr>
-                <th class="align-middle text-center">Move Name</th>
-                <th class="align-middle text-center">Power</th>
-                <th class="align-middle text-center">Type</th>
-                <th class="align-middle text-center">Damage Class</th>
-            </tr>
-        `;
+    console.log("Update Table Header aufgerufen, tableHeader gefunden:", tableHeader);
+
+    // Überprüfe, ob das Element vorhanden ist
+    if (tableHeader) {
+        // Entscheide, welcher HTML-Code basierend auf der aktuellen Lernmethode verwendet werden soll
+        if (["tutor", "egg", "machine"].includes(currentLearnMethod)) {
+            // Setze den HTML-Inhalt für die Methoden 'tutor', 'egg', 'machine'
+            tableHeader.innerHTML = `
+                <tr>
+                    <th class="align-middle text-center">Move Name</th>
+                    <th class="align-middle text-center">Power</th>
+                    <th class="align-middle text-center">Type</th>
+                    <th class="align-middle text-center">Damage Class</th>
+                </tr>
+            `;
+        } else {
+            // Setze den HTML-Inhalt für die Methode 'level-up' oder andere
+            tableHeader.innerHTML = `
+                <tr>
+                    <th class="align-middle text-center">Level</th>
+                    <th class="align-middle text-center">Move Name</th>
+                    <th class="align-middle text-center">Power</th>
+                    <th class="align-middle text-center">Type</th>
+                    <th class="align-middle text-center">Damage Class</th>
+                </tr>
+            `;
+        }
     } else {
-        tableHeader.innerHTML = `
-            <tr>
-                <th class="align-middle text-center">Level</th>
-                <th class="align-middle text-center">Move Name</th>
-                <th class="align-middle text-center">Power</th>
-                <th class="align-middle text-center">Type</th>
-                <th class="align-middle text-center">Damage Class</th>
-            </tr>
-        `;
+        // Protokolliere einen Fehler, wenn das Element nicht gefunden wird
+        console.error('Element pokemon-moves-header nicht gefunden.');
     }
 }
+
 
 
 
