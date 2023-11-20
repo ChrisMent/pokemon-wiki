@@ -7,62 +7,80 @@ import { getBackgroundColor } from './utils.js'
 
 // Zustandsvariable für aktive Suche
 export let isSearchActive = false;
+// Globale Variable für die letzte Suchanfrage
+let lastQuery = '';
+let currentSearchPromise = null;
+
+// Eventhandling
 
 // Eventhandling
 
 document.addEventListener("DOMContentLoaded", function() {
+    // Initialisierung von Elementen
     const searchInput = document.querySelector('.form-control');
     const searchButton = document.querySelector('.search-button');
-    const loadMoreButton = document.querySelector('.load-more')
+    const loadMoreButton = document.querySelector('.load-more');
     
+    // Funktionen zum Hinzufügen von Event-Listenern
+    setupSearchInputEvents(searchInput, loadMoreButton);
+    setupSearchButtonEvent(searchButton);
+    setupCloseButtonEvents();
+    setupClearSearchEvent();
+
+    // Starten der initialen Suchfunktion
+    searchPokemons();
+});
+
+function setupSearchInputEvents(searchInput, loadMoreButton) {
     // Event-Listener für die Eingabetaste im Suchfeld
     searchInput.addEventListener('keypress', async (event) => {
         if (event.key === 'Enter') {
-            // Verhindern Sie, dass das Standardverhalten des Formulars das Neuladen der Seite verursacht
-            event.preventDefault();
-            // Führen Sie die Suche mit dem aktuellen Wert des Suchfelds aus
+            event.preventDefault(); // Verhindern des Standardverhaltens
             await performSearch(event);
         }
     });
 
     // Event-Listener für das Fokussieren und Verlassen des Suchfelds
-    searchInput.addEventListener('focus', function() {
-    // "Load More" Button ausblenden, wenn das Suchfeld fokussiert wird
-    loadMoreButton.style.display = 'none';
-    });
-    
-    searchInput.addEventListener('blur', function() {
+    searchInput.addEventListener('focus', () => loadMoreButton.style.display = 'none');
+    searchInput.addEventListener('blur', () => {
         if (!isSearchActive) {
             loadMoreButton.style.display = 'flex';
         }
     });
 
-    // Event-Listener für den Such-Button
-    searchButton.addEventListener('click', handleSearchButtonClick); // click Event-Listener hinzufügen
-        
-    // Event-Listener für den Close-Button dynamisch hinzufügen wenn kein Pokemon gefunden wurde! oder das löschen der Suche
-    document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('btn-close') || event.target.id === 'clearSearch') {
-            clearNoPokemons();
-        }
-    });
-
-    document.getElementById('clearSearch').addEventListener('click', function() {
-        document.getElementById('searchInput').value = '';
-        // Führen Sie hier zusätzliche Aktionen aus, z.B. die Suchergebnisse zurücksetzen
-    });
-
     // Event-Listener für Änderungen im Suchfeld
-    searchInput.addEventListener('input', function(event) {
+    searchInput.addEventListener('input', (event) => {
         if (event.target.value.trim() === '') {
             clearNoPokemons();
         }
     });
 
-    searchPokemons();
-});
+    // Debounced Event-Listener für das Suchfeld
+    const debouncedSearch = searchDebounce(performSearch, 300);
+    searchInput.addEventListener('input', debouncedSearch);
+}
 
 
+function setupSearchButtonEvent(searchButton) {
+    // Event-Listener für den Such-Button
+    searchButton.addEventListener('click', handleSearchButtonClick);
+}
+
+function setupCloseButtonEvents() {
+    // Event-Listener für den Close-Button
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('btn-close') || event.target.id === 'clearSearch') {
+            clearNoPokemons();
+        }
+    });
+}
+
+function setupClearSearchEvent() {
+    // Event-Listener für das Löschen der Suche
+    document.getElementById('clearSearch').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+    });
+}
 
 // Funktion, die bei Klick auf den Suchbutton aufgerufen wird
 function handleSearchButtonClick(e) {
@@ -87,10 +105,6 @@ function clearNoPokemons(){
     
 }
 
-// Globale Variable für die letzte Suchanfrage
-let lastQuery = '';
-let currentSearchPromise = null;
-
 function searchDebounce(func, wait) {
     let timeout;
 
@@ -105,16 +119,41 @@ function searchDebounce(func, wait) {
     };
 };
 
-// Event-Listener für das Suchfeld
-document.querySelector('.form-control').addEventListener('input', searchDebounce(performSearch, 300));
+function updateUIForNoResults() {
+    const nothingFound = document.getElementById('info-message');
+    nothingFound.innerHTML = `
+        <div class="alert alert-info m-3 text-center alert-dismissible fade show" role="alert">
+            Zu deiner Suche wurde leider kein Pokemon gefunden!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+    document.getElementById("pokemon-container").innerHTML = '';
+    hideLoadingIndicator();
+}
+
+function updateUIForSearchResults(searchResults) {
+    allPokemonData.length = 0;
+    allPokemonData.push(...searchResults);
+    renderAllPokemon(allPokemonData);
+    initModal();
+
+    // Prüfen, ob die notwendigen Elemente für applyFilters im DOM vorhanden sind
+    if (document.getElementById('pokemon-moves-header') && document.getElementById('pokemon-moves')) {
+        allPokemonData.forEach(pokemon => {
+            if (pokemon.movesDetails) {
+                applyFilters(pokemon.movesDetails, 'sun-moon', 'level-up');
+            }
+        });
+    } else {
+        console.info('Some necessary elements for applyFilters are not yet in the DOM.');
+    }
+}
 
 export async function performSearch() {
-    showLoadingIndicator(); // Zeige den Spinner beim Start der Suche
+    showLoadingIndicator();
     const loadMoreButton = document.querySelector('.load-more');
     loadMoreButton.style.display = 'none';
     const searchInput = document.querySelector('.form-control');
     const searchQuery = searchInput.value.trim().toLowerCase();
-    const pokemonContainer = document.getElementById("pokemon-container");
     lastQuery = searchQuery;
     isSearchActive = true;
 
@@ -125,43 +164,18 @@ export async function performSearch() {
         const searchPromise = new Promise(async (resolve, reject) => {
             const searchResults = await searchPokemons(searchQuery);
             resolve({ searchQuery, searchResults });
-            console.log('Erhaltene Suchergebnisse:', searchResults);
         });
 
         currentSearchPromise = searchPromise;
-
         const { searchQuery: responseQuery, searchResults } = await searchPromise;
 
         hideLoadingIndicator();
 
         if (responseQuery === lastQuery && currentSearchPromise === searchPromise) {
             if (searchResults && searchResults.length > 0) {
-                allPokemonData.length = 0;
-                allPokemonData.push(...searchResults);
-
-                renderAllPokemon(allPokemonData);
-                await initModal(); // Warten, bis initModal abgeschlossen ist
-
-                const tableHeaderExists = document.getElementById('pokemon-moves-header') !== null;
-                const movesTableExists = document.getElementById('pokemon-moves') !== null;
-
-                if (tableHeaderExists && movesTableExists) {
-                    allPokemonData.forEach(pokemon => {
-                        if (pokemon.movesDetails) { // Überprüfen Sie, ob movesDetails vorhanden sind
-                            applyFilters(pokemon.movesDetails, 'sun-moon', 'level-up');
-                        }
-                    });
-                } else {
-                    console.error('Eines der erforderlichen Elemente für applyFilters fehlt im DOM.');
-                }
+                updateUIForSearchResults(searchResults);
             } else {
-                nothingFound.innerHTML = `
-                    <div class="alert alert-info m-3 text-center alert-dismissible fade show" role="alert">
-                        Zu deiner Suche wurde leider kein Pokemon gefunden!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>`;
-                pokemonContainer.innerHTML = '';
-                hideLoadingIndicator();
+                updateUIForNoResults();
             }
         }
     } else {
@@ -169,9 +183,6 @@ export async function performSearch() {
         await initModal();
     }
 }
-
-
-
 
 export async function searchPokemons(query) {
     if (!query) return [];

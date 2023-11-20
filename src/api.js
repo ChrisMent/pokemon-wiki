@@ -5,7 +5,7 @@ export let renderedPokemonCount = 0; // Initialisieren Sie die Variable
 export let isInitialLoad = true;
 
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 6;
+let limit = 1;
 let offset = 0;
 
 export function incrementRenderedPokemonCount() {
@@ -293,8 +293,9 @@ function processPokemonDetail(data) {
 
 export async function fetchPokemonsMovesDetails(pokemon) {
     // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die movesBaseData enthält
-    if (!pokemon || !pokemon.movesBaseData) {
-        return; // Keine Daten vorhanden, also frühzeitig beenden
+    if (!pokemon || !pokemon.details || !allPokemonData.some(p => p.name === pokemon.name)) {
+        console.info(`Pokemon ${pokemon.name} Substring - not found in allPokemonData for moves details.`);
+        return;
     }
 
     // Erstelle ein Array von Promises für jede Bewegung des Pokémon
@@ -356,8 +357,9 @@ async function fetchMoveDetails(moveBaseData) {
 export async function fetchPokemonsSpecies(pokemon) {
     //console.log("fetchPokemonsSpecies called for", pokemon.name); // Hinzugefügt
     // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die speciesUrl enthält
-    if (!pokemon || !pokemon.details || !pokemon.details.speciesUrl) {
-        return; // Keine Daten vorhanden, also frühzeitig beenden
+    if (!pokemon || !pokemon.details || !allPokemonData.some(p => p.name === pokemon.name)) {
+        console.info(`Pokemon ${pokemon.name} Substring - not found in allPokemonData for species.`);
+        return;
     }
 
     try {

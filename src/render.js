@@ -104,8 +104,6 @@ export function updateBaseDataAttributes(modalContent, pokemonData) {
     });
 }
 
-// In render.js
-
 export function updateAboutDataAttributes(modalContent, details) {
     const aboutDataElements = modalContent.querySelectorAll('[data-about]');
 
@@ -122,8 +120,10 @@ export function updateAboutDataAttributes(modalContent, details) {
                 element.textContent = `${details.weightInLbs} lbs (${details.weightInKg} kg)`;
                 break;
             case 'abilities':
-                const capitalizedAbilities = details.abilities.map(ability => capitalizeEachWord(ability));
-                element.textContent = capitalizedAbilities.join(', ');
+                if (details.abilities) {
+                    const capitalizedAbilities = details.abilities.map(ability => capitalizeEachWord(ability));
+                    element.textContent = capitalizedAbilities.join(', ');
+                }
                 break;
             case 'genderRateFemale':
                 element.textContent = (details.genderRateFemale !== -1) ? `${details.genderRateFemale}%` : '';
@@ -132,8 +132,10 @@ export function updateAboutDataAttributes(modalContent, details) {
                 element.textContent = (details.genderRateFemale !== -1) ? `${details.genderRateMale}%` : '';
                 break;
             case 'eggGroups':
-                const capitalizedEggGroups = details.eggGroups.map(eggGroup => capitalizeEachWord(eggGroup));
-                element.textContent = capitalizedEggGroups.join(', ');
+                if (details.eggGroups) {
+                    const capitalizedEggGroups = details.eggGroups.map(eggGroup => capitalizeEachWord(eggGroup));
+                    element.textContent = capitalizedEggGroups.join(', ');
+                }
                 break;
             case 'captureRate':
                 element.textContent = `${details.captureRate}%`;
@@ -153,7 +155,6 @@ export function updateAboutDataAttributes(modalContent, details) {
         genderStandardRow.style.display = '';
     }
 }
-
 
 export function renderCardBackgroundColor(cardElement, pokemonType) {
     if (pokemonType) {
@@ -195,10 +196,6 @@ export function renderProgressBars(progressBarsData, totalProgressBarSelector) {
         progressBarTotal.style.backgroundColor = '#faae0b';
     }
 }
-
-
-
-
 
 export function generateEvolutionHTML(evolutionChain) {
     let htmlContent = '';  // Initialisieren Sie die Variablen
@@ -314,13 +311,3 @@ export function updateTableHeader(currentLearnMethod) {
         console.error('Element pokemon-moves-header nicht gefunden.');
     }
 }
-
-
-
-
-
-
-
-
-
-
