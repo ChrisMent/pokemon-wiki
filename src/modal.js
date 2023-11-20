@@ -10,14 +10,6 @@ import { isSearchActive } from './search.js';
 // Variable, um den Status des Modals zu verfolgen
 let isModalOpen = false;
 
-// Event-Handler für Klicks außerhalb des Modals
-function handleOutsideClick(event) {
-    const modal = document.getElementById('pokemonModal');
-    if (event.target === modal) {
-        closeTheModal();
-    }
-}
-
 // Event-Handler, um das Modal zu schließen
 function closeTheModal() {
     const modal = document.getElementById('pokemonModal');
@@ -74,7 +66,6 @@ export async function initModal() {
             }
 
             let textResponseModal = await responseModal.text();
-            //textResponseModal = replaceValues(textResponseModal, selectedPokemon);
             document.querySelector('.modal-content').innerHTML = textResponseModal;
 
             // Aufruf der renderPokemonStats Funktion
@@ -164,7 +155,6 @@ export async function initModal() {
         await updateModalContent(newIndex);
     }
     
-
     async function updateModalContent(pokemonIndex) {
         // Ermitteln der neuen Pokémon-Daten
         const newPokemonData = allPokemonData[pokemonIndex];
@@ -181,27 +171,27 @@ export async function initModal() {
                 throw new Error(`HTTP error! status: ${responseModal.status}`);
             }
             let textResponseModal = await responseModal.text();
-            textResponseModal = replaceValues(textResponseModal, newPokemonData);
             document.querySelector('.modal-content').innerHTML = textResponseModal;
     
-            // Setzen der Breite und Farbe der Fortschrittsbalken
-            const progressBars = document.querySelectorAll('.progress-bar');
-            progressBars.forEach(progressBar => {
-                const widthValue = parseFloat(progressBar.dataset.width);
-                progressBar.style.width = widthValue + '%';
-                if (widthValue > 50) {
-                    progressBar.style.backgroundColor = '#6DCD95';
-                } else {
-                    progressBar.style.backgroundColor = '#FDA2A2';
-                }
+            const modalContentElement = document.querySelector('.modal-content');
+    
+            // Aufrufen der Update- und Render-Funktionen aus render.js
+            updateBaseDataAttributes(modalContentElement, newPokemonData);
+            updateAboutDataAttributes(modalContentElement, newPokemonData.details);
+            renderCardBackgroundColor(modalContentElement, newPokemonData.details.types[0]);
+            renderPokemonStats(modalContentElement, newPokemonData);
+            
+            // Erstellen der Daten für Fortschrittsbalken
+            const progressBars = modalContentElement.querySelectorAll('.progress-bar');
+            const progressBarsData = Array.from(progressBars).map(progressBar => {
+                return {
+                    selector: '#' + progressBar.id,
+                    width: parseFloat(progressBar.dataset.width)
+                };
             });
     
-            // Hintergrundfarbe für das erste Kartenelement setzen
-            const cardFirstSec = document.getElementById('card-first-sec');
-            if (newPokemonData.details && newPokemonData.details.types && newPokemonData.details.types[0]) {
-                const bgColor = getBackgroundColor(newPokemonData.details.types[0]);
-                cardFirstSec.style.backgroundColor = bgColor;
-            }
+            // Aufrufen von renderProgressBars mit korrekten Daten
+            renderProgressBars(progressBarsData, '.total');
     
             // Evolutionsdaten abrufen und HTML generieren
             const evolutionData = await getEvolutionDataForPokemon(newPokemonData.name);
@@ -212,42 +202,31 @@ export async function initModal() {
             watchDropdown(newPokemonData.movesDetails);
             watchNavigationMenu(newPokemonData.movesDetails);
             applyFilters(newPokemonData.movesDetails);
-
-            // Zeigt das Modal an und setzt den Zustand auf offen
-            const modal = document.getElementById('pokemonModal');
-            modal.style.display = "block";
-            isModalOpen = true;
-            
-            // Event-Listener für das Schließen des Modals hinzufügen
-            const closeModalButton = document.getElementById('closeModal');
-            closeModalButton.addEventListener('click', closeTheModal);
     
-            // Aktualisieren des Event-Listeners für die Pfeile
-            const arrowLeft = document.querySelector('.arrow-back');
-            const arrowRight = document.querySelector('.arrow-forward');
-    
-            arrowLeft.addEventListener('click', () => changePokemon(pokemonIndex, 'previous'));
-            arrowRight.addEventListener('click', () => changePokemon(pokemonIndex, 'next'));
+            // Event-Listener für das Schließen des Modals und die Pfeile aktualisieren
+            updateModalEventListeners(pokemonIndex);
     
         } catch (error) {
             console.error("Fehler beim Aktualisieren des Modalinhalts:", error);
         }
     }
     
+    function updateModalEventListeners(pokemonIndex) {
+        const modal = document.getElementById('pokemonModal');
+        modal.style.display = "block";
+        isModalOpen = true;
     
-    // Event-Listener für Klicks außerhalb des Modals hinzufügen
-    window.removeEventListener('click', handleOutsideClick); // Entfernen Sie das alte Ereignis, falls es existiert
-    window.addEventListener('click', handleOutsideClick); // Fügen Sie das Ereignis hinzu, um das Modal zu schließen, wenn auf den Hintergrund geklickt wird
+        const closeModalButton = document.getElementById('closeModal');
+        closeModalButton.addEventListener('click', closeTheModal);
+    
+        const arrowLeft = document.querySelector('.arrow-back');
+        const arrowRight = document.querySelector('.arrow-forward');
+    
+        arrowLeft.addEventListener('click', () => changePokemon(pokemonIndex, 'previous'));
+        arrowRight.addEventListener('click', () => changePokemon(pokemonIndex, 'next'));
+    }
+    
 
-    // Stellen Sie sicher, dass das Modal nicht sofort angezeigt wird
-    const modal = document.getElementById('pokemonModal');
-    modal.style.display = "none";
-
-    // Stellen Sie sicher, dass die .modal-content-Klicks nicht das Modal schließen
-    const modalContent = document.querySelector('.modal-content');
-    modalContent.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
 }
 
 function watchDropdown(selectedPokemonMoves) {
