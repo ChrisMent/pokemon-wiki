@@ -18,7 +18,7 @@ async function main() {
         renderAllPokemon(allPokemonData);
         fetchPokemonFullList();
         initModal();
-        //console.log('Zugriff auf allPokemonData: ', allPokemonData);
+        console.log('Zugriff auf allPokemonData: ', allPokemonData);
         
     } catch (error) {
         console.error("Fehler beim Laden oder Rendern der Pokemon:", error);

@@ -5,7 +5,7 @@ export let renderedPokemonCount = 0; // Initialisieren Sie die Variable
 export let isInitialLoad = true;
 
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 3;
+let limit = 6;
 let offset = 0;
 
 export function incrementRenderedPokemonCount() {
@@ -354,7 +354,7 @@ async function fetchMoveDetails(moveBaseData) {
 }
 
 export async function fetchPokemonsSpecies(pokemon) {
-    console.log("fetchPokemonsSpecies called for", pokemon.name); // Hinzugefügt
+    //console.log("fetchPokemonsSpecies called for", pokemon.name); // Hinzugefügt
     // Stellen Sie sicher, dass das Pokémon-Objekt existiert und die speciesUrl enthält
     if (!pokemon || !pokemon.details || !pokemon.details.speciesUrl) {
         return; // Keine Daten vorhanden, also frühzeitig beenden
@@ -365,7 +365,7 @@ export async function fetchPokemonsSpecies(pokemon) {
         const species = await fetchPokemonSpecies(pokemon.details.speciesUrl);
         
         if (species) {
-            console.log("Species data fetched for", pokemon.name, species); // Hinzugefügt
+            //console.log("Species data fetched for", pokemon.name, species); // Hinzugefügt
             // Aktualisieren Sie das übergebene Pokémon-Objekt mit den neuen Speziesdaten
             pokemon.details = { ...pokemon.details, ...species };
 

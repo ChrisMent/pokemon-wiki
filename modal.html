@@ -19,7 +19,7 @@
 
     <div class="container-modal col d-flex justify-content-center align-items-center mt-4">
         <div class="pokemon-wrapper card rounded-5">
-            <div id="card-first-sec" class="card-body rounded-top-5 pt-4" data-bg-color="{{pokemonBackgroundColor}}">
+            <div id="card-first-sec" class="card-body rounded-top-5 pt-4" data-base-data="pokemonBackgroundColor">
                 <div class="arrows">
                     <div class="bg-arrow-left">
                         <div class="arrow-adjust">
@@ -39,18 +39,18 @@
 
                 <div class="first-layer d-flex justify-content-between margins">
                     <img id="closeModal" src="/pokemon-wiki/img/cancel.svg" alt="Close Pokemon Card">
-                    <div class="fs-5 fw-medium">#{{pokemonID}}</div>
+                    <div class="fs-5 fw-medium" data-base-data="pokemonID">#{{pokemonID}}</div>
                 </div>
                 <div>
-                    <h3 class="card-title margins mt-3">{{pokemonName}}</h3>
+                    <h3 class="card-title margins mt-3" data-base-data="pokemonName">{{pokemonName}}</h3>
                 </div>
                 <div class="margins">
                     <div id="type-1" class="badge-background badge rounded-pill">
-                        <span class="overview-badge">{{pokemonType1}}
+                        <span class="overview-badge" data-base-data="pokemonType1">{{pokemonType1}}
                         </span>
                     </div>
                     <div id="type-2" class="badge-background badge rounded-pill">
-                        <span class="overview-badge">{{pokemonType2}}
+                        <span class="overview-badge" data-base-data="pokemonType2">{{pokemonType2}}
                         </span>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
 
 
                 <div class="pokemon-image-container">
-                    <img src={{pokemonImage}} alt="main-image-pokemon">
+                    <img src={{pokemonImage}} alt="main-image-pokemon" data-base-data="pokemonImage">
                 </div>
 
 
@@ -120,19 +120,19 @@
                             <tbody>
                                 <tr>
                                     <td scope="row">Species</td>
-                                    <th>{{Species}}</th>
+                                    <th data-about="species">{{Species}}</th>
                                 </tr>
                                 <tr>
                                     <td scope="row">Height</td>
-                                    <th>{{heightInInch}} inches ({{height}} cm)</th>
+                                    <th data-about="height">{{heightInInch}} inches ({{height}} cm)</th>
                                 </tr>
                                 <tr>
                                     <td scope="row">Weight</td>
-                                    <th>{{weightInLbs}} lbs ({{weightInKg}} kg)</th>
+                                    <th data-about="weight">{{weightInLbs}} lbs ({{weightInKg}} kg)</th>
                                 </tr>
                                 <tr>
                                     <td scope="row">Abilities</td>
-                                    <th>{{abilities}}</th>
+                                    <th data-about="abilities">{{abilities}}</th>
                                 </tr>
                             </tbody>
                         </table>
@@ -144,7 +144,7 @@
                                 <!-- Template für "Unknown" -->
                                 <tr id="gender-unknown">
                                     <td class="align-middle" scope="row">Gender</td>
-                                    <th class="adjust-th">Unknown
+                                    <th class="adjust-th" data-about="unknown">Unknown
                                     </th>
                                 </tr>
 
@@ -154,22 +154,22 @@
                                     <th class="adjust-th">
                                         <img class="gender-female" src="/pokemon-wiki/img/female.svg"
                                             alt="female-symbol">
-                                        <div>{{genderRateFemale}}%</div>
+                                        <div data-about="genderRateFemale">{{genderRateFemale}}%</div>
                                     </th>
                                     <th class="adjust-th">
                                         <img class="gender-male" src="/pokemon-wiki/img/male.svg" alt="male-symbol">
-                                        <div>{{genderRateMale}}%</div>
+                                        <div data-about="genderRateMale">{{genderRateMale}}%</div>
                                     </th>
                                 </tr>
 
                                 </tr>
                                 <tr>
                                     <td scope="row">Egg Groups</td>
-                                    <th>{{eggGroups}}</th>
+                                    <th data-about="eggGroups">{{eggGroups}}</th>
                                 </tr>
                                 <tr>
                                     <td scope="row">Capture Rate</td>
-                                    <th>{{captureRate}}%</th>
+                                    <th data-about="captureRate">{{captureRate}}%</th>
                                 </tr>
 
                             </tbody>
@@ -183,84 +183,84 @@
                             <tbody>
                                 <tr>
                                     <td scope="row" class="col-3">HP</td>
-                                    <th class="col-2">{{hp}}</th>
+                                    <th class="col-2" data-stat="hp">{{hp}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar" data-width="{{hp}}">
+                                            <div class="progress-bar" data-width="hp">
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td scope="row">Attack</td>
-                                    <th>{{attack}}</th>
+                                    <th data-stat="attack">{{attack}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar" data-width="{{attack}}">
+                                            <div class="progress-bar" data-width="attack">
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td scope="row">Defense</td>
-                                    <th>{{defense}}</th>
+                                    <th data-stat="defense">{{defense}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar" data-width="{{defense}}">
+                                            <div class="progress-bar" data-width="defense">
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td scope="row">Sp. Atk</td>
-                                    <th>{{specialAttack}}</th>
+                                    <th data-stat="specialAttack">{{specialAttack}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar" data-width="{{specialAttack}}">
+                                            <div class="progress-bar" data-width="specialAttack">
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td scope="row">Sp. Def</td>
-                                    <th>{{specialDefense}}</th>
+                                    <th data-stat="specialDefense">{{specialDefense}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar" data-width="{{specialDefense}}">
+                                            <div class="progress-bar" data-width="specialDefense">
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td scope="row">Speed</td>
-                                    <th>{{speed}}</th>
+                                    <th data-stat="speed">{{speed}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar" data-width="{{speed}}">
+                                            <div class="progress-bar" data-width="speed">
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td scope="row">Total</td>
-                                    <th>{{totalProgress}}</th>
+                                    <th data-stat="totalProgress">{{totalProgress}}</th>
                                     <td class="align-middle">
                                         <div class="progress" style="height: 5px;" role="progressbar"
                                             aria-label="first-stat" aria-valuenow="25" aria-valuemin="0"
                                             aria-valuemax="100">
-                                            <div class="progress-bar total" data-width="{{totalProgress}}">
+                                            <div class="progress-bar total" data-width="totalProgress">
                                             </div>
                                         </div>
                                     </td>

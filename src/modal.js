@@ -2,7 +2,7 @@
 
 // Importieren Sie benötigte Module und Funktionen
 import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
-import { generateEvolutionHTML, renderMoves, updateTableHeader  } from './render.js';
+import { generateEvolutionHTML, renderMoves, updateTableHeader, renderPokemonStats,renderProgressBars, renderCardBackgroundColor , updateBaseDataAttributes, updateAboutDataAttributes } from './render.js';
 import { lightenColor, getBackgroundColor, formatNumber } from './utils.js';
 import { capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
 import { isSearchActive } from './search.js';
@@ -74,24 +74,35 @@ export async function initModal() {
             }
 
             let textResponseModal = await responseModal.text();
-            textResponseModal = replaceValues(textResponseModal, selectedPokemon);
+            //textResponseModal = replaceValues(textResponseModal, selectedPokemon);
             document.querySelector('.modal-content').innerHTML = textResponseModal;
 
-            // Setzen der Breite und Farbe des Fortschrittsbalkens
-            const progressBars = document.querySelectorAll('.progress-bar');
-            progressBars.forEach(progressBar => {
-                const widthValue = parseFloat(progressBar.dataset.width);
-                progressBar.style.width = widthValue + '%';
-                if (widthValue > 50) {
-                    progressBar.style.backgroundColor = '#6DCD95';
-                } else {
-                    progressBar.style.backgroundColor = '#FDA2A2';
-                }
+            // Aufruf der renderPokemonStats Funktion
+            const modalContentElement = document.querySelector('.modal-content');
+            updateBaseDataAttributes(modalContentElement, selectedPokemon);
+            updateAboutDataAttributes(modalContentElement, selectedPokemon.details);
+            renderPokemonStats(modalContentElement, selectedPokemon);
+
+            // Sammeln der Daten für Fortschrittsbalken nach dem Ersetzen der Platzhalter
+            const progressBarsData = Array.from(document.querySelectorAll('.progress-bar'))
+            .map(progressBar => {
+                const dataType = progressBar.getAttribute('data-width');
+                // Zugriff auf die Werte im Unterobjekt 'baseStats'
+                const statValue = selectedPokemon.details.baseStats[dataType];
+                return {
+                    dataType: dataType,
+                    width: statValue
+                };
             });
+        
+            //console.log("progressBarsData nach Laden und Ersetzen:", progressBarsData);
+
+            // Aufruf von renderProgressBars
+            renderProgressBars(progressBarsData, '.total');
 
             // Ermitteln des Index des ausgewählten Pokémon
             const selectedIndex = allPokemonData.findIndex(pokemon => pokemon.name.toLowerCase() === pokemonName.toLowerCase());
-            console.log('Index des ausgewählten Pokémon:', selectedIndex);
+            //console.log('Index des ausgewählten Pokémon:', selectedIndex);
 
             // Event-Listener für die Pfeile hinzufügen
             const arrowLeft = document.querySelector('.arrow-back');
@@ -100,19 +111,15 @@ export async function initModal() {
             arrowLeft.addEventListener('click', () => changePokemon(selectedIndex, 'previous'));
             arrowRight.addEventListener('click', () => changePokemon(selectedIndex, 'next'));
 
-            const progressBarTotal = document.querySelector('.total');
-            progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
-            progressBarTotal.style.backgroundColor = '#faae0b';
-
             // Hintergrundfarbe für das erste Kartenelement setzen
             const cardFirstSec = document.getElementById('card-first-sec');
             
             //console.log('Selected Pokemon Details:', selectedPokemon.details);
 
             if (selectedPokemon.details && selectedPokemon.details.types && selectedPokemon.details.types[0]) {
-                const bgColor = getBackgroundColor(selectedPokemon.details.types[0]);
-                console.log('Background color:', bgColor);
-                cardFirstSec.style.backgroundColor = bgColor;
+                const cardFirstSec = document.getElementById('card-first-sec'); // Stellen Sie sicher, dass diese ID korrekt ist
+                renderCardBackgroundColor(cardFirstSec, selectedPokemon.details.types[0]);
+                //console.log('Background color:', bgColor);
             }
 
             // Evolutionsdaten abrufen und HTML generieren
@@ -228,10 +235,6 @@ export async function initModal() {
     }
     
     
-    
-
-    
-
     // Event-Listener für Klicks außerhalb des Modals hinzufügen
     window.removeEventListener('click', handleOutsideClick); // Entfernen Sie das alte Ereignis, falls es existiert
     window.addEventListener('click', handleOutsideClick); // Fügen Sie das Ereignis hinzu, um das Modal zu schließen, wenn auf den Hintergrund geklickt wird
@@ -333,83 +336,6 @@ export function applyFilters(selectedPokemon, game = currentGame, learnMethod = 
     
     updateTableHeader(currentLearnMethod);
     renderMoves(filteredMoves, currentLearnMethod);
-}
-
-// Funktion zum Ersetzen von Platzhaltern im modalContent
-function replaceValues(modalContent, pokemonData) {
-
-    const details = pokemonData.details;
-
-    modalContent = modalContent.replace(/{{pokemonName}}/g, capitalizeEachWord(pokemonData.name));
-    modalContent = modalContent.replace('{{pokemonID}}', formatNumber(details.id));
-    modalContent = modalContent.replace('{{pokemonType1}}', capitalizeEachWord(details.types[0]));
-    
-    // Überprüft, ob ein zweiter Pokémon-Typ vorhanden ist
-    if (pokemonData.details.types[1]) {
-        modalContent = modalContent.replace('{{pokemonType2}}', capitalizeEachWord(details.types[1]));
-    } else {
-        // Wenn kein zweiter Typ vorhanden ist, wird das div-Element ausgeblendet
-        modalContent = modalContent.replace('<div id="type-2" class="badge-background badge rounded-pill">', '<div id="type-2" class="badge-background badge rounded-pill" style="display: none;">');
-    }
-
-    // Ersetzt das Pokémon-Bild
-    modalContent = modalContent.replace(/{{pokemonImage}}/g, details.sprites);
-    // Ruft die Hintergrundfarbe basierend auf dem ersten Pokémon-Typ ab
-    const backgroundColor = getBackgroundColor(details.types[0]);
-    // Ersetzt die Hintergrundfarbe
-    modalContent = modalContent.replace('{{pokemonBackgroundColor}}', backgroundColor);
-    modalContent = modalContent.replace('{{Species}}', details.genusWithoutPokemon
-    );
-    modalContent = modalContent.replace('{{heightInInch}}', details.heightInInch);
-    modalContent = modalContent.replace('{{height}}', details.height);
-    modalContent = modalContent.replace('{{weightInLbs}}', details.weightInLbs);
-    modalContent = modalContent.replace('{{weightInKg}}', details.weightInKg);
-    // Konstante `capitalizedAbilities` erstellen, um das Ergebnis der `map`-Funktion zu speichern.
-    // Die `map`-Funktion wird auf das Array `pokemonData.abilities` angewendet.
-    // `map` ruft eine Callback-Funktion für jedes Element des Arrays auf und erstellt ein neues Array aus den Ergebnissen.
-    const capitalizedAbilities = details.abilities.map(abilities => 
-        capitalizeEachWord(abilities)
-    );
-    modalContent = modalContent.replace('{{abilities}}', 
-    // `join` wird auf das `capitalizedAbilities`-Array angewendet, um seine Elemente zu einem einzigen String zusammenzufassen und mit dem Trennzeichen ', ' (Komma gefolgt von einem Leerzeichen) verbunden. Das Ergebnis ist ein String, welcher die Werte, separiert durch ein Komma ausgibt.
-    capitalizedAbilities.join(', ')
-  );
-
-    // Überprüfen, ob ein Geschlecht vorhanden und dann das entsprechende Template rendern
-    if (details.genderRateFemale == -1) {
-        const genderUnknownPattern = /<tr id="gender-standard">[\s\S]*?<\/tr>/; // Ein regulärer Ausdruck, der die <tr> Zeile mit der ID "gender-standard" erfasst
-        modalContent = modalContent.replace(genderUnknownPattern, ''); 
-        // Entfernen Sie das Standard-Template
-    } else {
-        const genderStandardPattern = /<tr id="gender-unknown">[\s\S]*?<\/tr>/; // Ein regulärer Ausdruck, der die <tr> Zeile mit der ID "gender-unknown" erfasst
-        modalContent = modalContent.replace(genderStandardPattern, ''); 
-        // Entfernen Sie das "Unknown"-Template
-        modalContent = modalContent.replace('{{genderRateFemale}}', details.genderRateFemale);
-        modalContent = modalContent.replace('{{genderRateMale}}', details.genderRateMale);
-    }
-    //console.log('Selected Pokemon:', selectedPokemon);
-    //console.log('Details:', selectedPokemon.details);
-    
-    if (details && details.eggGroups) {
-        const capitalizedEggGroups = details.eggGroups.map(eggGroup => capitalizeEachWord(eggGroup));
-        // ... weitere Logik
-        modalContent = modalContent.replace('{{eggGroups}}', capitalizedEggGroups.join(', '));
-    }
-    
-    
-    modalContent = modalContent.replace('{{captureRate}}', details.captureRate);
-    
-    // Mehrfache Vorkommen: Wenn es mehrere Vorkommen von {{x}} im Modal gibt, ersetzt die Methode .replace() nur das erste Vorkommen. Alle Vorkommen ersetzen, mit einem regulären Ausdruck.
-
-    modalContent = modalContent.replace(/{{hp}}/g, details.baseStats.hp);
-    modalContent = modalContent.replace(/{{attack}}/g, details.baseStats.attack);
-    modalContent = modalContent.replace(/{{defense}}/g, details.baseStats.defense);
-    modalContent = modalContent.replace(/{{specialAttack}}/g, details.baseStats.specialAttack);
-    modalContent = modalContent.replace(/{{specialDefense}}/g, details.baseStats.specialDefense);
-    modalContent = modalContent.replace(/{{speed}}/g, details.baseStats.speed);
-    modalContent = modalContent.replace(/{{totalProgress}}/g, details.baseStats.totalProgress); // pokemonData.baseStats.totalStatProgress
-       
-    return modalContent;
 }
 
 

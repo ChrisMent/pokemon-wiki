@@ -1,4 +1,4 @@
-import { lightenColor, getBackgroundColor, capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
+import { lightenColor, getBackgroundColor, capitalizeFirstLetter, capitalizeEachWord, formatNumber } from './utils.js';
 import { hideLoadingIndicator, allPokemonData, incrementRenderedPokemonCount, resetRenderedPokemonCount, getCurrentRenderedPokemonCount, isInitialLoad, renderedPokemonCount } from './api.js';
 import { initModal, applyFilters } from './modal.js';
 
@@ -68,6 +68,136 @@ export function renderOverview(pokemonData, localTotalPokemonCount) {
         hideLoadingIndicator();
     }
 }
+
+export function updateBaseDataAttributes(modalContent, pokemonData) {
+    const details = pokemonData.details;
+    const baseDataElements = modalContent.querySelectorAll('[data-base-data]');
+
+    baseDataElements.forEach(element => {
+        const dataType = element.getAttribute('data-base-data');
+        switch (dataType) {
+            case 'pokemonName':
+                element.textContent = capitalizeEachWord(pokemonData.name);
+                break;
+            case 'pokemonID':
+                element.textContent = '#' + formatNumber(details.id); // Hier wird die 'id' direkt aus 'details' abgerufen
+                break;
+            case 'pokemonType1':
+                element.textContent = capitalizeEachWord(details.types[0]);
+                break;
+            case 'pokemonType2':
+                if (details.types[1]) {
+                    element.textContent = capitalizeEachWord(details.types[1]);
+                } else {
+                    element.style.display = 'none';
+                }
+                break;
+            case 'pokemonImage':
+                element.setAttribute('src', details.sprites);
+                break;
+            case 'pokemonBackgroundColor':
+                const backgroundColor = getBackgroundColor(details.types[0]);
+                element.style.backgroundColor = backgroundColor;
+                break;
+            // Weitere Fälle können hier hinzugefügt werden
+        }
+    });
+}
+
+// In render.js
+
+export function updateAboutDataAttributes(modalContent, details) {
+    const aboutDataElements = modalContent.querySelectorAll('[data-about]');
+
+    aboutDataElements.forEach(element => {
+        const aboutType = element.getAttribute('data-about');
+        switch (aboutType) {
+            case 'species':
+                element.textContent = details.genusWithoutPokemon;
+                break;
+            case 'height':
+                element.textContent = `${details.heightInInch} inches (${details.height} cm)`;
+                break;
+            case 'weight':
+                element.textContent = `${details.weightInLbs} lbs (${details.weightInKg} kg)`;
+                break;
+            case 'abilities':
+                const capitalizedAbilities = details.abilities.map(ability => capitalizeEachWord(ability));
+                element.textContent = capitalizedAbilities.join(', ');
+                break;
+            case 'genderRateFemale':
+                element.textContent = (details.genderRateFemale !== -1) ? `${details.genderRateFemale}%` : '';
+                break;
+            case 'genderRateMale':
+                element.textContent = (details.genderRateFemale !== -1) ? `${details.genderRateMale}%` : '';
+                break;
+            case 'eggGroups':
+                const capitalizedEggGroups = details.eggGroups.map(eggGroup => capitalizeEachWord(eggGroup));
+                element.textContent = capitalizedEggGroups.join(', ');
+                break;
+            case 'captureRate':
+                element.textContent = `${details.captureRate}%`;
+                break;
+            // Fügen Sie hier weitere Fälle hinzu
+        }
+    });
+
+    // Behandlung der Anzeige/Verbergen von Geschlechterinformationen
+    const genderUnknownRow = modalContent.querySelector('#gender-unknown');
+    const genderStandardRow = modalContent.querySelector('#gender-standard');
+    if (details.genderRateFemale === -1) {
+        genderUnknownRow.style.display = '';
+        genderStandardRow.style.display = 'none';
+    } else {
+        genderUnknownRow.style.display = 'none';
+        genderStandardRow.style.display = '';
+    }
+}
+
+
+export function renderCardBackgroundColor(cardElement, pokemonType) {
+    if (pokemonType) {
+        const bgColor = getBackgroundColor(pokemonType);
+        cardElement.style.backgroundColor = bgColor;
+    }
+}
+
+export function renderPokemonStats(modalContent, selectedPokemon) {
+    const statsElements = modalContent.querySelectorAll('[data-stat]');
+    statsElements.forEach(element => {
+        const statType = element.getAttribute('data-stat');
+        element.textContent = selectedPokemon.details.baseStats[statType];
+    });
+}
+
+export function renderProgressBars(progressBarsData, totalProgressBarSelector) {
+    progressBarsData.forEach(progressBarData => {
+        const progressBar = document.querySelector(`[data-width="${progressBarData.dataType}"]`);
+        const widthValue = parseFloat(progressBarData.width);
+        progressBar.style.width = widthValue + '%';
+
+        // Ausführliche Schreibweise für backgroundColor
+        if (widthValue > 50) {
+            progressBar.style.backgroundColor = '#6DCD95';
+        } else {
+            progressBar.style.backgroundColor = '#FDA2A2';
+        }
+    });
+
+    // Verarbeitung des Gesamtfortschrittsbalkens
+    if (totalProgressBarSelector) {
+        const progressBarTotal = document.querySelector(totalProgressBarSelector);
+        if (!progressBarTotal) {
+            console.error('Gesamtfortschrittsbalken nicht gefunden:', totalProgressBarSelector);
+            return;
+        }
+        progressBarTotal.style.width = progressBarTotal.getAttribute('data-width') + '%';
+        progressBarTotal.style.backgroundColor = '#faae0b';
+    }
+}
+
+
+
 
 
 export function generateEvolutionHTML(evolutionChain) {
