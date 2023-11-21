@@ -9,9 +9,6 @@ import { getBackgroundColor } from './utils.js'
 export let isSearchActive = false;
 // Globale Variable für die letzte Suchanfrage
 let lastQuery = '';
-let currentSearchPromise = null;
-
-// Eventhandling
 
 // Eventhandling
 
@@ -135,18 +132,11 @@ function updateUIForSearchResults(searchResults) {
     allPokemonData.push(...searchResults);
     renderAllPokemon(allPokemonData);
     initModal();
-
-    // Prüfen, ob die notwendigen Elemente für applyFilters im DOM vorhanden sind
-    if (document.getElementById('pokemon-moves-header') && document.getElementById('pokemon-moves')) {
-        allPokemonData.forEach(pokemon => {
-            if (pokemon.movesDetails) {
-                applyFilters(pokemon.movesDetails, 'sun-moon', 'level-up');
-            }
-        });
-    } else {
-        console.info('Some necessary elements for applyFilters are not yet in the DOM.');
-    }
+    
+    // Warte, bis alle movesDetails geladen sind, bevor die UI aktualisiert wird
+    Promise.all(allPokemonData.map(pokemon => fetchPokemonsMovesDetails(pokemon)));
 }
+
 
 export async function performSearch() {
     showLoadingIndicator();
@@ -157,32 +147,28 @@ export async function performSearch() {
     lastQuery = searchQuery;
     isSearchActive = true;
 
-    const nothingFound = document.getElementById('info-message');
-    nothingFound.innerHTML = '';
-
     if (searchQuery) {
-        const searchPromise = new Promise(async (resolve, reject) => {
-            const searchResults = await searchPokemons(searchQuery);
-            resolve({ searchQuery, searchResults });
-        });
+        const searchResults = await searchPokemons(searchQuery);
 
-        currentSearchPromise = searchPromise;
-        const { searchQuery: responseQuery, searchResults } = await searchPromise;
-
-        hideLoadingIndicator();
-
-        if (responseQuery === lastQuery && currentSearchPromise === searchPromise) {
+        if (lastQuery === searchQuery) {
+            hideLoadingIndicator();
             if (searchResults && searchResults.length > 0) {
+                // Warten, bis alle movesDetails geladen sind, bevor die UI aktualisiert wird
+                await Promise.all(searchResults.map(pokemon => fetchPokemonsMovesDetails(pokemon)));
+                
+                // Aktualisiere die UI mit den vollständig geladenen Pokémon-Daten
                 updateUIForSearchResults(searchResults);
             } else {
                 updateUIForNoResults();
             }
         }
     } else {
-        renderAllPokemon(allPokemonData.slice(0, 20));
-        await initModal();
+        resetAndLoadInitialPokemons();
     }
 }
+
+
+
 
 export async function searchPokemons(query) {
     if (!query) return [];
@@ -207,17 +193,6 @@ export async function searchPokemons(query) {
                 await fetchPokemonsMovesDetails(pokemon);
                 await fetchPokemonsSpecies(pokemon);
 
-                // Evolutionsdaten abrufen
-                const speciesId = pokemon.details.speciesUrl.split('/').filter(part => part).pop();
-                //console.log(`Abrufen der Evolutionsdaten für Species ID ${speciesId} für Pokémon ${originalPokemon.name}`);
-                try {
-                    const evolutionData = await getEvolutionDataForPokemon(speciesId);
-                    //console.log(`Evolutionsdaten für ${originalPokemon.name}:`, evolutionData);
-                    pokemon.evolutionData = evolutionData;
-                } catch (evolutionError) {
-                    console.error(`Fehler beim Abrufen der Evolutionsdaten für ${originalPokemon.name}:`, evolutionError);
-                }
-
                 // Hinzufügen von Name und URL
                 pokemon.name = originalPokemon.name;
                 pokemon.url = originalPokemon.url;
@@ -229,5 +204,6 @@ export async function searchPokemons(query) {
 
     return detailedPokemons;
 }
+
 
 

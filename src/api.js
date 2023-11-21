@@ -1,4 +1,5 @@
-import { renderOverview } from './render.js';
+import { renderOverview, renderAllPokemon  } from './render.js';
+import { initModal, applyFilters } from './modal.js';
 
 export let allPokemonData = [];
 export let renderedPokemonCount = 0; // Initialisieren Sie die Variable
@@ -319,7 +320,9 @@ export async function fetchPokemonsMovesDetails(pokemon) {
         // Aktualisieren Sie das allPokemonData-Array
         let pokemonIndex = allPokemonData.findIndex(p => p.name === pokemon.name);
         if (pokemonIndex !== -1) {
-            allPokemonData[pokemonIndex] = { ...allPokemonData[pokemonIndex], ...pokemon };
+            allPokemonData[pokemonIndex] = { ...allPokemonData[pokemonIndex], movesDetails: pokemon.movesDetails };
+            updateUIAfterDataFetch(pokemonIndex);
+        
         } else {
             console.error("Pokemon not found in allPokemonData:", pokemon.name);
         }
@@ -329,7 +332,14 @@ export async function fetchPokemonsMovesDetails(pokemon) {
     }
 }
 
-
+function updateUIAfterDataFetch(pokemonIndex) {
+    if (document.getElementById('pokemon-moves-header') && document.getElementById('pokemon-moves')) {
+        const pokemon = allPokemonData[pokemonIndex];
+        if (pokemon.movesDetails) {
+            applyFilters(pokemon.movesDetails, 'sun-moon', 'level-up');
+        }
+    }
+}
 
 
 async function fetchMoveDetails(moveBaseData) {

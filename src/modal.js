@@ -1,8 +1,7 @@
 // Importieren Sie benötigte Module und Funktionen
 import { allPokemonData, getEvolutionDataForPokemon } from './api.js';
 import { generateEvolutionHTML, renderMoves, updateTableHeader, renderPokemonStats,renderProgressBars, renderCardBackgroundColor , updateBaseDataAttributes, updateAboutDataAttributes } from './render.js';
-import { lightenColor, getBackgroundColor, formatNumber } from './utils.js';
-import { capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
+import { lightenColor, getBackgroundColor, formatNumber, capitalizeFirstLetter, capitalizeEachWord } from './utils.js';
 import { isSearchActive } from './search.js';
 
 // Variable, um den Status des Modals zu verfolgen
@@ -69,6 +68,7 @@ async function loadModalContent(selectedPokemon) {
     updateBaseDataAttributes(modalContentElement, selectedPokemon);
     updateAboutDataAttributes(modalContentElement, selectedPokemon.details);
     renderCardBackgroundColor(modalContentElement, selectedPokemon.details.types[0]);
+
     // Erstellen der Daten für Fortschrittsbalken
     const progressBarsData = Array.from(modalContentElement.querySelectorAll('.progress-bar'))
     .map(progressBar => {
@@ -82,17 +82,20 @@ async function loadModalContent(selectedPokemon) {
 
     // Überprüfen, ob progressBarsData ein Array ist
     if (!Array.isArray(progressBarsData)) {
-    console.error('progressBarsData ist kein Array:', progressBarsData);
-    return;
+        console.error('progressBarsData ist kein Array:', progressBarsData);
+        return;
     }
 
     renderProgressBars(progressBarsData, '.total');
     renderPokemonStats(modalContentElement, selectedPokemon);
     
-    // Laden der Moves basierend auf den Standardwerten
-    applyFilters(selectedPokemon.movesDetails, currentGame, currentLearnMethod);
+    // Überprüfen, ob movesDetails vorhanden und korrekt ist
+    if (!selectedPokemon.movesDetails || !Array.isArray(selectedPokemon.movesDetails)) {
+        console.error('movesDetails nicht vorhanden oder nicht im erwarteten Format:', selectedPokemon.movesDetails);
+        return; // Abbrechen, wenn movesDetails fehlen oder falsch sind
+    }
 
-    // Dropdown-Ereignisse überwachen
+    applyFilters(selectedPokemon.movesDetails, currentGame, currentLearnMethod);
     watchDropdown(selectedPokemon.movesDetails);
     watchNavigationMenu(selectedPokemon.movesDetails);
 
@@ -100,6 +103,7 @@ async function loadModalContent(selectedPokemon) {
     const evolutionHTML = generateEvolutionHTML(evolutionData);
     document.getElementById('evolutionContent').innerHTML = evolutionHTML;
 }
+
 
 function setUpEventListenersForModal(selectedPokemon) {
     const modal = document.getElementById('pokemonModal');
@@ -266,7 +270,7 @@ export function watchNavigationMenu(selectedPokemonMoves) {
 }
 
 export function applyFilters(selectedPokemon, game = currentGame, learnMethod = currentLearnMethod) {
-    //console.log('hier stehen die Moves: ', selectedPokemon)
+    console.log('hier stehen die Moves: ', selectedPokemon)
     if (!Array.isArray(selectedPokemon)) {
         console.error("selectedPokemon is not an array:", selectedPokemon);
         return; // Verlasse die Funktion frühzeitig, da wir nicht weitermachen können
