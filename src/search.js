@@ -1,8 +1,24 @@
-import { allPokemonData, fetchPokemonDetail, fetchPokemonsMovesDetails , fetchPokemonsSpecies, getEvolutionDataForPokemon, updateUIWithNewPokemons, resetAndLoadInitialPokemons, showLoadingIndicator, hideLoadingIndicator } from './api.js';
-import { renderAllPokemon } from './render.js'; 
-import { allPokemonsList } from './data.js';
-import { initModal, applyFilters } from './modal.js';
-import { getBackgroundColor } from './utils.js'
+import {
+    allPokemonData,
+    fetchPokemonDetail,
+    fetchPokemonsMovesDetails,
+    fetchPokemonsSpecies,
+    resetAndLoadInitialPokemons,
+} from './api.js';
+import {
+    renderAllPokemon,
+    updateArrowVisibility
+} from './render.js';
+import {
+    allPokemonsList
+} from './data.js';
+import {
+    initModal,
+} from './modal.js';
+import {
+    showLoadingIndicator,
+    hideLoadingIndicator
+} from './utils.js'
 
 
 // Zustandsvariable für aktive Suche
@@ -17,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const searchInput = document.querySelector('.form-control');
     const searchButton = document.querySelector('.search-button');
     const loadMoreButton = document.querySelector('.load-more');
-    
+
     // Funktionen zum Hinzufügen von Event-Listenern
     setupSearchInputEvents(searchInput, loadMoreButton);
     setupSearchButtonEvent(searchButton);
@@ -88,18 +104,20 @@ function handleSearchButtonClick(e) {
 
 // Funktion die die Suche zurücksetzt
 
-function clearNoPokemons(){
+function clearNoPokemons() {
     const searchInput = document.querySelector('.form-control');
     searchInput.value = '';
     isSearchActive = false; // Setze die Suche als nicht aktiv
-    resetAndLoadInitialPokemons();
+    resetAndLoadInitialPokemons().then(() => {
+        hideLoadingIndicator(); // Verstecke den Ladeindikator nach dem Neuladen der Pokémon
+    });
 
     const nothingFound = document.getElementById('info-message');
     nothingFound.innerHTML = ''; // Leere die nothingFound-Nachricht
-    
+
     const loadMoreButton = document.querySelector('.load-more');
     loadMoreButton.style.display = 'flex';
-    
+
 }
 
 function searchDebounce(func, wait) {
@@ -132,7 +150,7 @@ function updateUIForSearchResults(searchResults) {
     allPokemonData.push(...searchResults);
     renderAllPokemon(allPokemonData);
     initModal();
-    
+
     // Warte, bis alle movesDetails geladen sind, bevor die UI aktualisiert wird
     Promise.all(allPokemonData.map(pokemon => fetchPokemonsMovesDetails(pokemon)));
 }
@@ -153,11 +171,18 @@ export async function performSearch() {
         if (lastQuery === searchQuery) {
             hideLoadingIndicator();
             if (searchResults && searchResults.length > 0) {
-                // Warten, bis alle movesDetails geladen sind, bevor die UI aktualisiert wird
-                await Promise.all(searchResults.map(pokemon => fetchPokemonsMovesDetails(pokemon)));
-                
-                // Aktualisiere die UI mit den vollständig geladenen Pokémon-Daten
-                updateUIForSearchResults(searchResults);
+                allPokemonData.length = 0;
+                allPokemonData.push(...searchResults);
+
+                // Laden der Zusatzdaten für jedes Pokémon
+                for (const pokemon of allPokemonData) {
+                    await fetchPokemonsMovesDetails(pokemon);
+                    await fetchPokemonsSpecies(pokemon);
+                }
+
+                renderAllPokemon(allPokemonData);
+                await initModal();
+                updateArrowVisibility()
             } else {
                 updateUIForNoResults();
             }
@@ -167,13 +192,10 @@ export async function performSearch() {
     }
 }
 
-
-
-
 export async function searchPokemons(query) {
     if (!query) return [];
 
-    const filteredPokemons = allPokemonsList.filter(pokemon => 
+    const filteredPokemons = allPokemonsList.filter(pokemon =>
         pokemon.name.toLowerCase().includes(query.toLowerCase())
     );
 
@@ -204,6 +226,3 @@ export async function searchPokemons(query) {
 
     return detailedPokemons;
 }
-
-
-
