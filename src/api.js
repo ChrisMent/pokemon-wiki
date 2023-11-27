@@ -503,7 +503,7 @@ export async function loadMorePokemons() {
     updateUIWithNewPokemons(newPokemons);
     hideLoadingIndicator(); // Verstecke den Ladeindikator
     updateArrowVisibility();
-    console.log("Nach dem Laden - renderedPokemonCount: ", getRenderedPokemonCount());
+    //console.log("Nach dem Laden - renderedPokemonCount: ", getRenderedPokemonCount());
 }
 
 // Funktion zum Aktualisieren der UI mit neuen Pokémon-Daten

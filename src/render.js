@@ -441,7 +441,7 @@ export function updateTableHeader(currentLearnMethod) {
 
 // Funktion zum Aktualisieren der Sichtbarkeit der Pfeile
 export function updateArrowVisibility() {
-    // Suche nach den Pfeilelementen im DOM
+    // Suche nach den Pfeilelementen im DOM, weil diese im Modal sind muss die Fehlermeldung abgefangen werden, siehe folgendes If- Statement
     const leftArrow = document.querySelector('.bg-arrow-left');
     const rightArrow = document.querySelector('.bg-arrow-right');
 

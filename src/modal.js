@@ -56,6 +56,7 @@ export async function initModal() {
             // Lädt den Inhalt des Modals und richtet Event-Listener ein.
             await loadModalContent(selectedPokemon);
             setUpEventListenersForModal(selectedPokemon);
+            updateArrowVisibility();
         } catch (error) {
             // Protokolliert Fehler beim Laden des Modalinhalts.
             console.error("Error loading modal content:", error);
@@ -120,6 +121,7 @@ async function loadModalContent(selectedPokemon) {
     const evolutionData = await getEvolutionDataForPokemon(selectedPokemon.name);
     const evolutionHTML = generateEvolutionHTML(evolutionData);
     document.getElementById('evolutionContent').innerHTML = evolutionHTML;
+    updateArrowVisibility();
 }
 
 
@@ -225,6 +227,7 @@ async function updateModalContent(pokemonIndex) {
         watchNavigationMenu(newPokemonData.movesDetails);
 
         setUpEventListenersForModal(newPokemonData);
+        updateArrowVisibility();
 
     } catch (error) {
         console.error("Fehler beim Aktualisieren des Modalinhalts:", error);
