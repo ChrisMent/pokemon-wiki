@@ -22,7 +22,7 @@ let renderedPokemonCount = 0; // Zählen wie viele Pokemons gerendert wurden
 
 // Basis URL der API für den Datenabruf
 export const BASE_URL = 'https://pokeapi.co/api/v2/';
-let limit = 1; // Festlegen wie viele Pokémon-Einträge pro Anfrage abgerufen werden.
+let limit = 5; // Festlegen wie viele Pokémon-Einträge pro Anfrage abgerufen werden.
 let offset = 0; // Ist der Startpunkt der Daten, beim API-Abruf: 0 die Datenabfrage beginnt von der ersten verfügbaren Ressource.
 
 //! Abruf der Basisdaten von der API
