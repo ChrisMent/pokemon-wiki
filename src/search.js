@@ -21,9 +21,10 @@ import {
 } from './utils.js'
 
 
-// Zustandsvariable für aktive Suche
+// Zustandsvariable, um zu überprüfen, ob eine Suche aktiv ist
 export let isSearchActive = false;
-// Globale Variable für die letzte Suchanfrage
+
+// Speichert die zuletzt ausgeführte Suchanfrage
 let lastQuery = '';
 
 // Eventhandling
@@ -120,19 +121,27 @@ function clearNoPokemons() {
 
 }
 
+// Funktion: searchDebounce
+// Zweck: Erstellt eine verzögerte ("debounced") Version einer Funktion, die erst nach einer angegebenen Wartezeit ausgeführt wird. Dies ist nützlich, um zu verhindern, dass eine Funktion zu oft in kurzer Zeit ausgeführt wird, wie z.B. bei der Eingabe in ein Suchfeld.
+// Parameter:
+//   - func: Die Funktion, die verzögert ausgeführt werden soll.
+//   - wait: Die Wartezeit in Millisekunden, bevor die Funktion ausgeführt wird, nachdem die letzte Ausführung angefordert wurde.
+// Rückgabewert: Eine neue Funktion, die die übergebene Funktion 'func' mit einer Verzögerung ausführt.
+
 function searchDebounce(func, wait) {
-    let timeout;
+    let timeout; // Variable zum Speichern des Timeout-Identifikators.
 
     return function executedFunction(...args) {
         const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+            clearTimeout(timeout); // Löscht den vorherigen Timeout.
+            func(...args); // Ruft die übergebene Funktion 'func' mit allen übergebenen Argumenten auf.
         };
 
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        clearTimeout(timeout); // Setzt den Timeout zurück, wenn die Funktion erneut aufgerufen wird, bevor die Wartezeit abgelaufen ist.
+        timeout = setTimeout(later, wait); // Setzt einen neuen Timeout, um die Funktion 'later' nach der Wartezeit 'wait' auszuführen.
     };
 };
+
 
 function updateUIForNoResults() {
     const nothingFound = document.getElementById('info-message');
@@ -145,84 +154,107 @@ function updateUIForNoResults() {
     hideLoadingIndicator();
 }
 
-function updateUIForSearchResults(searchResults) {
-    allPokemonData.length = 0;
-    allPokemonData.push(...searchResults);
-    renderAllPokemon(allPokemonData);
-    initModal();
-
-    // Warte, bis alle movesDetails geladen sind, bevor die UI aktualisiert wird
-    Promise.all(allPokemonData.map(pokemon => fetchPokemonsMovesDetails(pokemon)));
-}
-
+// Funktion: performSearch
+// Zweck: Führt eine Suche basierend auf dem Wert im Suchfeld aus und aktualisiert die Benutzeroberfläche entsprechend den Suchergebnissen.
+// Suchlogik: Die Funktion ruft searchPokemons auf, um die Pokémon zu finden, die dem Suchbegriff entsprechen. Anschließend werden Details wie Bewegungen und Arten für jedes gefundene Pokémon geladen.
 
 export async function performSearch() {
+    // Zeigt den Ladeindikator an
     showLoadingIndicator();
+
+    // Verbirgt den "Load More"-Button während der Suche
     const loadMoreButton = document.querySelector('.load-more');
     loadMoreButton.style.display = 'none';
+
+    // Ermittelt den aktuellen Suchbegriff aus dem Eingabefeld
     const searchInput = document.querySelector('.form-control');
     const searchQuery = searchInput.value.trim().toLowerCase();
+
+    // Speichert den aktuellen Suchbegriff global, um doppelte Suchanfragen zu verhindern
     lastQuery = searchQuery;
-    isSearchActive = true;
+    isSearchActive = true; // Setzt den Status der Suche auf aktiv
 
     if (searchQuery) {
+        // Führt die Suche aus und wartet auf die Ergebnisse
         const searchResults = await searchPokemons(searchQuery);
 
+        // Überprüft, ob der Suchbegriff noch aktuell ist (um Doppelanfragen bei schnellen Eingaben zu verhindern)
         if (lastQuery === searchQuery) {
-            hideLoadingIndicator();
-            if (searchResults && searchResults.length > 0) {
-                allPokemonData.length = 0;
-                allPokemonData.push(...searchResults);
+            hideLoadingIndicator(); // Verbirgt den Ladeindikator nach der Suche
 
-                // Laden der Zusatzdaten für jedes Pokémon
+            // Überprüft, ob Suchergebnisse vorhanden sind
+            if (searchResults && searchResults.length > 0) {
+                allPokemonData.length = 0; // Leert das vorhandene Pokémon-Array
+                allPokemonData.push(...searchResults); // Fügt die Suchergebnisse zum Array hinzu
+
+                // Lädt Zusatzdaten für jedes gefundene Pokémon
                 for (const pokemon of allPokemonData) {
                     await fetchPokemonsMovesDetails(pokemon);
                     await fetchPokemonsSpecies(pokemon);
                 }
 
+                // Aktualisiert die Benutzeroberfläche mit den Suchergebnissen
                 renderAllPokemon(allPokemonData);
-                await initModal();
-                updateArrowVisibility()
+                await initModal(); // Initialisiert das Modal für die angezeigten Pokémon
+                updateArrowVisibility(); // Aktualisiert die Sichtbarkeit der Pfeile
             } else {
+                // Aktualisiert die UI, falls keine Ergebnisse gefunden wurden
                 updateUIForNoResults();
             }
         }
     } else {
+        // Setzt die Suche zurück und lädt die anfänglichen Pokémon-Daten, wenn das Suchfeld leer ist
         resetAndLoadInitialPokemons();
     }
 }
 
+
+// Funktion: searchPokemons
+// Zweck: Durchsucht die Liste aller Pokémon nach Pokémon, die den übergebenen Suchbegriff enthalten.
+// Parameter: 
+//   - query: Der Suchbegriff, der zum Filtern der Pokémon verwendet wird.
+// Rückgabewert: Ein Promise, das eine Liste von detaillierten Pokémon-Objekten zurückgibt.
+
 export async function searchPokemons(query) {
+    // Wenn kein Suchbegriff übergeben wird, gibt die Funktion ein leeres Array zurück.
     if (!query) return [];
 
+    // Filtert die Liste aller Pokémon basierend auf dem eingegebenen Suchbegriff. 
+    // Es wird überprüft, ob der Name eines Pokémon den Suchbegriff enthält.
     const filteredPokemons = allPokemonsList.filter(pokemon =>
         pokemon.name.toLowerCase().includes(query.toLowerCase())
     );
 
+    // Initialisiert ein leeres Array für die detaillierten Pokémon-Daten.
     let detailedPokemons = [];
 
     try {
+        // Erstellt ein Array von Promises, um die Detailinformationen für jedes gefilterte Pokémon abzurufen.
         const detailedPokemonsPromises = filteredPokemons.map(pokemon => fetchPokemonDetail(pokemon.url));
+        // Wartet auf die Erfüllung aller Promises und speichert die Ergebnisse in `detailedPokemons`.
         detailedPokemons = await Promise.all(detailedPokemonsPromises);
 
-        // Zusätzliche Details für jedes Pokémon abrufen
+        // Läuft durch jedes Detail-Pokémon und ruft zusätzliche Informationen ab.
         for (let i = 0; i < detailedPokemons.length; i++) {
             const pokemon = detailedPokemons[i];
             const originalPokemon = filteredPokemons[i];
 
+            // Überprüft, ob das Pokémon existiert und ob es zusätzliche Detailinformationen hat.
             if (pokemon && pokemon.details && pokemon.details.speciesUrl) {
-                // Bewegungen und Arten abrufen
+                // Ruft Bewegungs- und Artendaten für das Pokémon ab.
                 await fetchPokemonsMovesDetails(pokemon);
                 await fetchPokemonsSpecies(pokemon);
 
-                // Hinzufügen von Name und URL
+                // Ergänzt das Pokémon-Objekt mit Name und URL aus der ursprünglichen Liste.
                 pokemon.name = originalPokemon.name;
                 pokemon.url = originalPokemon.url;
             }
         }
     } catch (error) {
+        // Protokolliert einen Fehler, falls beim Abrufen der Detaildaten ein Problem auftritt.
         console.error('Fehler beim Abrufen der Detaildaten für Pokémon:', error);
     }
 
+    // Gibt die Liste der detaillierten Pokémon zurück.
     return detailedPokemons;
 }
